@@ -38,6 +38,19 @@
         <div class="app-body">
             <!-- Sidebar Configuration Panel -->
             <aside class="sidebar" id="sidebar">
+                <div class="info-card" style="padding: 1.2rem; background: var(--surface-1); border: 1px solid var(--border-medium); border-radius: var(--radius-md); margin-bottom: 1.6rem; box-shadow: var(--shadow-card);">
+                    <h3 style="font-size: 0.95rem; margin-bottom: 0.8rem; color: var(--text-primary); font-weight: 600;">RISC-V Bulk Normalization Algorithm (RVBNA)</h3>
+                    <p style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 0.6rem;">
+                        RVBNA is a numerical algorithm to compute approximate dot product operation.<br><br>
+                        It aims at offering a compromise between accuracy and efficiency which is suitable to scale to a large number of input elements.
+                    </p>
+                    <p style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 0.6rem;">
+                        Given a target number of elements, input formats and output formats, the specification is fully deterministic (all the compliant implementations will produce the same result for the same inputs).
+                    </p>
+                    <p style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5;">
+                        It is specified in <a href="https://github.com/riscv/riscv-isa-manual/blob/main/src/unpriv/rvbna.adoc" target="_blank" style="color: var(--accent); text-decoration: underline;">rvbna.adoc</a>.
+                    </p>
+                </div>
                 <form id="config-form" autocomplete="off">
                     <!-- Distribution Section -->
                     <section class="config-section">

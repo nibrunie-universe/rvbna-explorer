@@ -18,7 +18,7 @@ from flask_limiter.util import get_remote_address
 app = Flask(__name__, static_folder="static")
 
 MAX_REQUESTS_PER_MINUTE = 10
-VERSION = "0.0.2"
+VERSION = "0.0.3"
 
 limiter = Limiter(
     get_remote_address,
