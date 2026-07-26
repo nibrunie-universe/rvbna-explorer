@@ -12,13 +12,29 @@ from rvbna_web import (
     halfprecisionformat,
 )
 
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
 app = Flask(__name__, static_folder="static")
+
+MAX_REQUESTS_PER_MINUTE = 10
+VERSION = "0.0.2"
+
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=[f"{MAX_REQUESTS_PER_MINUTE} per minute"],
+    storage_uri="memory://",
+)
 
 
 @app.route("/")
 def index():
     return send_from_directory("static", "index.html")
 
+@app.route("/api/version")
+def get_version():
+    return jsonify({"version": VERSION})
 
 @app.route("/api/evaluate", methods=["POST"])
 def evaluate():

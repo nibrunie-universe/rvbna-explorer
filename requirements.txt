@@ -2,3 +2,4 @@ flask
 matplotlib
 git+https://github.com/nibrunie/pysollya.git
 gunicorn
+Flask-Limiter

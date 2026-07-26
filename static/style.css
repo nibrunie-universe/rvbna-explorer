@@ -5,37 +5,37 @@
 /* --- CSS Custom Properties (Design Tokens) --- */
 :root {
     /* Background & Surface */
-    --bg-base: #0c1221;
-    --bg-gradient: linear-gradient(160deg, #0c1221 0%, #151d35 40%, #1a1040 100%);
-    --surface-0: rgba(255, 255, 255, 0.03);
-    --surface-1: rgba(255, 255, 255, 0.055);
-    --surface-2: rgba(255, 255, 255, 0.08);
-    --border-subtle: rgba(255, 255, 255, 0.08);
-    --border-medium: rgba(255, 255, 255, 0.12);
+    --bg-base: #f8fafc;
+    --bg-gradient: linear-gradient(160deg, #f8fafc 0%, #e2e8f0 40%, #cbd5e1 100%);
+    --surface-0: rgba(255, 255, 255, 1);
+    --surface-1: rgba(255, 255, 255, 0.7);
+    --surface-2: rgba(255, 255, 255, 0.4);
+    --border-subtle: rgba(0, 0, 0, 0.08);
+    --border-medium: rgba(0, 0, 0, 0.15);
 
     /* Text */
-    --text-primary: #edf2f7;
-    --text-secondary: #8b9ec1;
-    --text-muted: #5a6d8e;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
 
     /* Accent palette */
-    --accent: #5b8af5;
-    --accent-hover: #4776e0;
-    --accent-glow: rgba(91, 138, 245, 0.35);
-    --accent-soft: rgba(91, 138, 245, 0.12);
+    --accent: #3b82f6;
+    --accent-hover: #2563eb;
+    --accent-glow: rgba(59, 130, 246, 0.25);
+    --accent-soft: rgba(59, 130, 246, 0.1);
 
     /* Semantic colours */
-    --success: #34d399;
-    --warning: #fbbf24;
-    --error: #f87171;
-    --info: #60a5fa;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --error: #ef4444;
+    --info: #3b82f6;
 
     /* Radius & shadow */
     --radius-sm: 8px;
     --radius-md: 14px;
     --radius-lg: 20px;
-    --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.35);
-    --shadow-glow: 0 0 30px rgba(91, 138, 245, 0.15);
+    --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.06);
+    --shadow-glow: 0 0 30px rgba(59, 130, 246, 0.15);
 
     /* Font */
     --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -73,7 +73,7 @@ body {
     justify-content: space-between;
     padding: 0 1.6rem;
     border-bottom: 1px solid var(--border-subtle);
-    background: rgba(12, 18, 33, 0.75);
+    background: rgba(255, 255, 255, 0.75);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     z-index: 10;
@@ -166,7 +166,7 @@ body {
     overflow-y: auto;
     padding: 1.5rem;
     border-right: 1px solid var(--border-subtle);
-    background: rgba(12, 18, 33, 0.55);
+    background: rgba(255, 255, 255, 0.55);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     flex-shrink: 0;
@@ -174,7 +174,7 @@ body {
 
 .sidebar::-webkit-scrollbar { width: 5px; }
 .sidebar::-webkit-scrollbar-track { background: transparent; }
-.sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 10px; }
+.sidebar::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 10px; }
 
 /* --- Config Sections --- */
 .config-section {
@@ -595,7 +595,7 @@ body {
     left: 50%;
     transform: translateX(-50%) translateY(100%);
     padding: 0.65rem 1.2rem;
-    background: rgba(15, 23, 42, 0.92);
+    background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid var(--border-medium);
@@ -603,7 +603,7 @@ body {
     color: var(--text-primary);
     font-size: 0.82rem;
     font-weight: 500;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     pointer-events: none;
     opacity: 0;
     transition: transform 0.3s ease, opacity 0.3s ease;

@@ -16,6 +16,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const cdfPanel = document.getElementById("cdf-panel");
     const toast = document.getElementById("toast");
 
+    fetch('/api/version')
+        .then(res => res.json())
+        .then(data => {
+            const versionEl = document.getElementById('app-version');
+            if (versionEl) versionEl.textContent = data.version;
+        })
+        .catch(err => console.error("Error fetching version:", err));
+
     let lastEvalData = null;
     let lastEvalN = 0;
 
