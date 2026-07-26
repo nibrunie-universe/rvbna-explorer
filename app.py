@@ -18,7 +18,7 @@ from flask_limiter.util import get_remote_address
 app = Flask(__name__, static_folder="static")
 
 MAX_REQUESTS_PER_MINUTE = 10
-VERSION = "0.0.3"
+VERSION = "0.0.4"
 
 limiter = Limiter(
     get_remote_address,
@@ -41,7 +41,6 @@ def evaluate():
     data = request.json
 
     # Distribution config
-    data_source = data.get("dataSource", "random")
     n = int(data.get("n", 1000))
     k = int(data.get("k", 2))
     average = float(data.get("average", 5.0))
@@ -52,42 +51,20 @@ def evaluate():
     # Clamp n to avoid extreme computation
     n = min(n, 50000)
 
-    if data_source == "tiny_llama":
-        import json
-        import os
-        from pysollya import round_sol, RN
-        
-        file_path = os.path.join(os.path.dirname(__file__), "tiny_llama_vectors.json")
-        if not os.path.exists(file_path):
-            return jsonify({"error": "tiny_llama_vectors.json not found. Please run extract_tinyllama_vectors.py first."}), 404
-            
-        with open(file_path, "r") as f:
-            vector_pairs = json.load(f)
-            
-        # We need to round them to the input precision, similar to random vectors.
-        vectors = []
-        for pair in vector_pairs:
-            a = [round_sol(val, input_prec, RN) for val in pair["a"]]
-            b = [round_sol(val, input_prec, RN) for val in pair["b"]]
-            vectors.append((a, b))
-            
-        # Limit to requested n
-        vectors = vectors[:n]
-    else:
-        # Per-vector distribution parameters
-        a_distribution = data.get("aDistribution", "gaussian")
-        a_average = float(data.get("aAverage", average))
-        a_sigma = float(data.get("aSigma", sigma))
-        b_distribution = data.get("bDistribution", "gaussian")
-        b_average = float(data.get("bAverage", average))
-        b_sigma = float(data.get("bSigma", sigma))
+    # Per-vector distribution parameters
+    a_distribution = data.get("aDistribution", "gaussian")
+    a_average = float(data.get("aAverage", average))
+    a_sigma = float(data.get("aSigma", sigma))
+    b_distribution = data.get("bDistribution", "gaussian")
+    b_average = float(data.get("bAverage", average))
+    b_sigma = float(data.get("bSigma", sigma))
 
-        # Generate random vectors
-        vectors = generate_vectors(n, k, average, sigma, input_prec=input_prec,
-                                   a_average=a_average, a_sigma=a_sigma,
-                                   b_average=b_average, b_sigma=b_sigma,
-                                   a_distribution=a_distribution,
-                                   b_distribution=b_distribution)
+    # Generate random vectors
+    vectors = generate_vectors(n, k, average, sigma, input_prec=input_prec,
+                               a_average=a_average, a_sigma=a_sigma,
+                               b_average=b_average, b_sigma=b_sigma,
+                               a_distribution=a_distribution,
+                               b_distribution=b_distribution)
 
     # Generate golden values (exact dot product)
     golden_values = [correctlyRoundedDotProd(a, b) for (a, b) in vectors]

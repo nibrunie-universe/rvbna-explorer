@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let lastEvalData = null;
     let lastEvalN = 0;
 
-    const dataSourceSelect = document.getElementById("cfg-data-source");
+
     const groupK = document.getElementById("group-k");
     const groupDist = document.getElementById("group-dist");
 
@@ -63,22 +63,7 @@ document.addEventListener("DOMContentLoaded", () => {
         bDistSelect.addEventListener("change", () => updateDistLabels("b", bDistSelect.value));
     }
 
-    if (dataSourceSelect) {
-        dataSourceSelect.addEventListener("change", () => {
-            const isLlama = dataSourceSelect.value === "tiny_llama";
-            if (isLlama) {
-                if (groupK) groupK.style.opacity = "0.5";
-                if (groupK) groupK.style.pointerEvents = "none";
-                if (groupDist) groupDist.style.opacity = "0.5";
-                if (groupDist) groupDist.style.pointerEvents = "none";
-            } else {
-                if (groupK) groupK.style.opacity = "1";
-                if (groupK) groupK.style.pointerEvents = "auto";
-                if (groupDist) groupDist.style.opacity = "1";
-                if (groupDist) groupDist.style.pointerEvents = "auto";
-            }
-        });
-    }
+
 
     let schemeCounter = 0;
 
