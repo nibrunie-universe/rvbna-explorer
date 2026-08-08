@@ -131,20 +131,26 @@ def evaluate_errors(vectors, func, kwargs, golden_values):
     """Compute relative errors of func vs golden, return sorted errors + stats."""
     abs_errors = []
     rel_errors = []
+    signed_rel_errors = []
     for ((a, b), golden) in zip(vectors, golden_values):
         res = func(a, b, **kwargs)
-        abs_error = abs(res - golden)
+        err = res - golden
+        abs_error = abs(err)
         if golden == 0:
             rel_error = 0.0 if abs_error == 0 else 1e308
+            signed_rel_error = 0.0 if abs_error == 0 else (1e308 if err > 0 else -1e308)
         else:
             rel_error = abs(abs_error / golden)
+            signed_rel_error = float(err / golden)
         # Check if the result is NaN (Not a Number).
         if abs_error != abs_error or rel_error != rel_error:
             print(f"NaN error detected, func={func.__name__}, a={a}, b={b}, golden={golden}, res={res}")
         abs_errors.append(float(abs_error))
         rel_errors.append(float(rel_error))
+        signed_rel_errors.append(float(signed_rel_error))
 
     sorted_rel_errors = sorted(rel_errors)
+    sorted_signed_rel_errors = sorted(signed_rel_errors)
     max_err = max(rel_errors)
     min_err = min(rel_errors)
 
@@ -159,6 +165,7 @@ def evaluate_errors(vectors, func, kwargs, golden_values):
 
     return {
         "sorted_rel_errors": sorted_rel_errors,
+        "sorted_signed_rel_errors": sorted_signed_rel_errors,
         "max": max_err,
         "min": min_err,
         "geometric_mean": geo_mean,

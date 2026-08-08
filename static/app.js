@@ -636,6 +636,8 @@ document.addEventListener("DOMContentLoaded", () => {
         lastEvalData = data;
         lastEvalN = n;
         biasedLog2Panel.style.display = "";
+        const signedBiasedLog2Panel = document.getElementById("signed-biased-log2-panel");
+        if (signedBiasedLog2Panel) signedBiasedLog2Panel.style.display = "";
         cdfPanel.style.display = "";
         chartPlaceholder.classList.add("hidden");
 
@@ -738,6 +740,46 @@ document.addEventListener("DOMContentLoaded", () => {
                 title: { text: "Sorted sample index", standoff: 10 },
             },
         }, PLOTLY_CONFIG);
+
+        // ── Signed Biased Log₂ Error chart ──────────────────────────────
+        const signedBiasedTraces = [];
+        entries.forEach(([schemeName, results], idx) => {
+            const color = SCHEME_COLORS[idx % SCHEME_COLORS.length];
+            const ySignedBiased = results.sorted_signed_rel_errors.map(v => {
+                if (v === 0) return 0;
+                const mag = Math.log2(Math.abs(v)) - minLog2;
+                return v > 0 ? mag : -mag;
+            });
+            const xData = Array.from({ length: ySignedBiased.length }, (_, i) => i);
+            signedBiasedTraces.push({
+                x: xData,
+                y: ySignedBiased,
+                type: "scattergl",
+                mode: "lines",
+                name: schemeName,
+                line: { color, width: 2 },
+                hovertemplate: "%{y:.2f}<extra>" + schemeName + "</extra>",
+            });
+        });
+
+        const signedBiasedWrap = document.getElementById("signed-biased-log2-wrap");
+        if (signedBiasedWrap) {
+            Plotly.react("signed-biased-log2-chart", signedBiasedTraces, {
+                ...PLOTLY_LAYOUT,
+                showlegend: true,
+                autosize: true,
+                height: Math.max(signedBiasedWrap.clientHeight, 400),
+                yaxis: {
+                    ...PLOTLY_LAYOUT.yaxis,
+                    type: "linear",
+                    title: { text: "Signed Biased log₂(error)", standoff: 10 },
+                },
+                xaxis: {
+                    ...PLOTLY_LAYOUT.xaxis,
+                    title: { text: "Sorted sample index", standoff: 10 },
+                },
+            }, PLOTLY_CONFIG);
+        }
 
         // ── CDF chart ────────────────────────────────────────────
         // Find global max biased log2 so all curves extend to the same right edge
