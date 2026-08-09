@@ -59,6 +59,9 @@ def evaluate():
     b_average = float(data.get("bAverage", average))
     b_sigma = float(data.get("bSigma", sigma))
 
+    # dumping detected configuration
+    print(f"n={n}, k={k}, average={average}, sigma={sigma}, input_prec={input_prec_name}, a_distribution={a_distribution}, a_average={a_average}, a_sigma={a_sigma}, b_distribution={b_distribution}, b_average={b_average}, b_sigma={b_sigma}")
+
     # Generate random vectors
     vectors = generate_vectors(n, k, average, sigma, input_prec=input_prec,
                                a_average=a_average, a_sigma=a_sigma,

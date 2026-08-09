@@ -132,7 +132,19 @@ def evaluate_errors(vectors, func, kwargs, golden_values):
     abs_errors = []
     rel_errors = []
     signed_rel_errors = []
+    signed_errors = []
+    pos_a_count = 0
+    neg_a_count = 0
+    pos_b_count = 0
+    neg_b_count = 0
     for ((a, b), golden) in zip(vectors, golden_values):
+        for ai in a:
+            if ai > 0: pos_a_count += 1
+            elif ai < 0: neg_a_count += 1
+        for bi in b:
+            if bi > 0: pos_b_count += 1
+            elif bi < 0: neg_b_count += 1
+            
         res = func(a, b, **kwargs)
         err = res - golden
         abs_error = abs(err)
@@ -148,6 +160,7 @@ def evaluate_errors(vectors, func, kwargs, golden_values):
         abs_errors.append(float(abs_error))
         rel_errors.append(float(rel_error))
         signed_rel_errors.append(float(signed_rel_error))
+        signed_errors.append(float(err))
 
     sorted_rel_errors = sorted(rel_errors)
     sorted_signed_rel_errors = sorted(signed_rel_errors)
@@ -162,6 +175,16 @@ def evaluate_errors(vectors, func, kwargs, golden_values):
         geo_mean = 0.0
 
     exact_count = len(rel_errors) - len(non_zero)
+    
+    mean_signed_error = sum(signed_errors) / len(signed_errors) if signed_errors else 0.0
+    valid_signed_rel = [e for e in signed_rel_errors if abs(e) < 1e308]
+    mean_signed_rel_error = sum(valid_signed_rel) / len(valid_signed_rel) if valid_signed_rel else 0.0
+
+    sum_signed_error = sum(signed_errors)
+    sum_signed_rel_error = sum(valid_signed_rel)
+    
+    pos_count = sum(1 for e in signed_errors if e > 0)
+    neg_count = sum(1 for e in signed_errors if e < 0)
 
     return {
         "sorted_rel_errors": sorted_rel_errors,
@@ -170,4 +193,14 @@ def evaluate_errors(vectors, func, kwargs, golden_values):
         "min": min_err,
         "geometric_mean": geo_mean,
         "exact_count": exact_count,
+        "mean_signed_error": mean_signed_error,
+        "mean_signed_rel_error": mean_signed_rel_error,
+        "sum_signed_error": sum_signed_error,
+        "sum_signed_rel_error": sum_signed_rel_error,
+        "pos_count": pos_count,
+        "neg_count": neg_count,
+        "pos_a_count": pos_a_count,
+        "neg_a_count": neg_a_count,
+        "pos_b_count": pos_b_count,
+        "neg_b_count": neg_b_count,
     }

@@ -604,7 +604,7 @@ document.addEventListener("DOMContentLoaded", () => {
         btnLabel.style.display = "none";
         btnSpinner.style.display = "block";
         setStatus("loading", "Evaluating…");
-        statsBody.innerHTML = `<tr><td colspan="5" class="empty-state">Computing…</td></tr>`;
+        statsBody.innerHTML = `<tr><td colspan="15" class="empty-state">Computing…</td></tr>`;
 
         try {
             const resp = await fetch("/api/evaluate", {
@@ -620,7 +620,7 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (err) {
             console.error(err);
             setStatus("error", "Error");
-            statsBody.innerHTML = `<tr><td colspan="5" class="empty-state" style="color:var(--error)">Evaluation failed — ${err.message}</td></tr>`;
+            statsBody.innerHTML = `<tr><td colspan="15" class="empty-state" style="color:var(--error)">Evaluation failed — ${err.message}</td></tr>`;
         } finally {
             evaluateBtn.disabled = false;
             btnLabel.style.display = "inline";
@@ -638,6 +638,8 @@ document.addEventListener("DOMContentLoaded", () => {
         biasedLog2Panel.style.display = "";
         const signedBiasedLog2Panel = document.getElementById("signed-biased-log2-panel");
         if (signedBiasedLog2Panel) signedBiasedLog2Panel.style.display = "";
+        const splitBiasedLog2Panel = document.getElementById("split-biased-log2-panel");
+        if (splitBiasedLog2Panel) splitBiasedLog2Panel.style.display = "";
         cdfPanel.style.display = "";
         chartPlaceholder.classList.add("hidden");
 
@@ -678,6 +680,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td>${fmtSci(results.max)}</td>
                 <td>${fmtSci(results.geometric_mean)}</td>
                 <td>${(results.exact_count / n * 100).toFixed(1)}% (${results.exact_count})</td>
+                <td>${fmtSci(results.mean_signed_rel_error)}</td>
+                <td>${fmtSci(results.mean_signed_error)}</td>
+                <td>${fmtSci(results.sum_signed_rel_error)}</td>
+                <td>${fmtSci(results.sum_signed_error)}</td>
+                <td>${results.pos_count}</td>
+                <td>${results.neg_count}</td>
+                <td>${results.pos_a_count}</td>
+                <td>${results.neg_a_count}</td>
+                <td>${results.pos_b_count}</td>
+                <td>${results.neg_b_count}</td>
             `;
             statsBody.appendChild(tr);
         });
@@ -773,6 +785,63 @@ document.addEventListener("DOMContentLoaded", () => {
                     ...PLOTLY_LAYOUT.yaxis,
                     type: "linear",
                     title: { text: "Signed Biased log₂(error)", standoff: 10 },
+                },
+                xaxis: {
+                    ...PLOTLY_LAYOUT.xaxis,
+                    title: { text: "Sorted sample index", standoff: 10 },
+                },
+            }, PLOTLY_CONFIG);
+        }
+
+        // ── Split Biased Log₂ Error chart ──────────────────────────────
+        const splitBiasedTraces = [];
+        entries.forEach(([schemeName, results], idx) => {
+            const color = SCHEME_COLORS[idx % SCHEME_COLORS.length];
+            
+            const posErrors = results.sorted_signed_rel_errors.filter(v => v > 0);
+            const negErrors = results.sorted_signed_rel_errors.filter(v => v < 0);
+            
+            const yPos = posErrors.map(v => Math.log2(v) - minLog2).sort((a, b) => a - b);
+            const xPos = Array.from({ length: yPos.length }, (_, i) => i);
+            
+            const yNeg = negErrors.map(v => Math.log2(Math.abs(v)) - minLog2).sort((a, b) => a - b);
+            const xNeg = Array.from({ length: yNeg.length }, (_, i) => i);
+            
+            if (yPos.length > 0) {
+                splitBiasedTraces.push({
+                    x: xPos,
+                    y: yPos,
+                    type: "scattergl",
+                    mode: "lines",
+                    name: schemeName + " (+)",
+                    line: { color, width: 2, dash: 'solid' },
+                    hovertemplate: "%{y:.2f}<extra>" + schemeName + " (+)</extra>",
+                });
+            }
+            if (yNeg.length > 0) {
+                splitBiasedTraces.push({
+                    x: xNeg,
+                    y: yNeg,
+                    type: "scattergl",
+                    mode: "lines",
+                    name: schemeName + " (-)",
+                    line: { color, width: 2, dash: 'dot' },
+                    hovertemplate: "%{y:.2f}<extra>" + schemeName + " (-)</extra>",
+                });
+            }
+        });
+
+        const splitBiasedWrap = document.getElementById("split-biased-log2-wrap");
+        if (splitBiasedWrap) {
+            Plotly.react("split-biased-log2-chart", splitBiasedTraces, {
+                ...PLOTLY_LAYOUT,
+                showlegend: true,
+                autosize: true,
+                height: Math.max(splitBiasedWrap.clientHeight, 400),
+                yaxis: {
+                    ...PLOTLY_LAYOUT.yaxis,
+                    type: "linear",
+                    title: { text: "Biased log₂(error)", standoff: 10 },
                 },
                 xaxis: {
                     ...PLOTLY_LAYOUT.xaxis,
