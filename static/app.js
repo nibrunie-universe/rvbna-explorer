@@ -531,10 +531,10 @@ document.addEventListener("DOMContentLoaded", () => {
             schemes.push(entry);
         });
 
-        const aAvg = parseFloat(fd.get("aAverage")) || 5.0;
-        const aSig = parseFloat(fd.get("aSigma")) || 5.0;
-        const bAvg = parseFloat(fd.get("bAverage")) || 5.0;
-        const bSig = parseFloat(fd.get("bSigma")) || 5.0;
+        const aAvg = parseFloat(fd.get("aAverage"));
+        const aSig = parseFloat(fd.get("aSigma"));
+        const bAvg = parseFloat(fd.get("bAverage"));
+        const bSig = parseFloat(fd.get("bSigma"));
 
         return {
             dataSource: fd.get("dataSource") || "random",
