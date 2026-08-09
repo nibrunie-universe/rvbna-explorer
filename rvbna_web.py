@@ -4,6 +4,7 @@ from pysollya import SollyaObject, round_sol, floor_sol, log2, RN, halfprecision
 import random
 import math
 import statistics
+import numpy as np
 
 # Named format lookup for the web API
 FORMAT_MAP = {
@@ -119,7 +120,8 @@ def generate_vectors(n, k, average, sigma, input_prec=halfprecisionformat,
             # Log-normal with underlying normal(avg, sig)
             return random.lognormvariate(avg, sig)
         else:  # gaussian (default)
-            return random.gauss(avg, sig)
+            return np.random.normal(avg, sig)
+            #return random.gauss(avg, sig)
 
     def genVector(k, distribution, avg, sig):
         return [round_sol(_sample(distribution, avg, sig), input_prec, RN) for _ in range(k)]
