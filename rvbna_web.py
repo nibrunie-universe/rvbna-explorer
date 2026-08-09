@@ -153,7 +153,8 @@ def evaluate_errors(vectors, func, kwargs, golden_values):
             signed_rel_error = 0.0 if abs_error == 0 else (1e308 if err > 0 else -1e308)
         else:
             rel_error = abs(abs_error / golden)
-            signed_rel_error = float(err / golden)
+            # Here, we are interested in the sign of the error regardless of the sign of the golden value
+            signed_rel_error = float(err / abs(golden))
         # Check if the result is NaN (Not a Number).
         if abs_error != abs_error or rel_error != rel_error:
             print(f"NaN error detected, func={func.__name__}, a={a}, b={b}, golden={golden}, res={res}")
