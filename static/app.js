@@ -128,7 +128,7 @@ document.addEventListener("DOMContentLoaded", () => {
         paper_bgcolor: "rgba(0,0,0,0)",
         plot_bgcolor: "rgba(0,0,0,0)",
         font: { family: "'Inter', sans-serif", color: "#8b9ec1", size: 12 },
-        margin: { t: 24, r: 24, b: 52, l: 60 },
+        margin: { t: 24, r: 24, b: 180, l: 60 },
         xaxis: {
             title: { text: "Sorted sample index", standoff: 10 },
             gridcolor: "rgba(255,255,255,0.05)",
@@ -144,7 +144,7 @@ document.addEventListener("DOMContentLoaded", () => {
         },
         legend: {
             orientation: "h",
-            yanchor: "top", y: -0.18,
+            yanchor: "top", y: -0.15,
             xanchor: "center", x: 0.5,
             font: { size: 11 },
             bgcolor: "rgba(0,0,0,0)",
@@ -765,7 +765,7 @@ document.addEventListener("DOMContentLoaded", () => {
             ...PLOTLY_LAYOUT,
             showlegend: true,
             autosize: true,
-            height: Math.max(wrap.clientHeight, 450),
+            height: Math.max(wrap.clientHeight, 600),
         };
 
         Plotly.react(chartDiv, traces, layout, PLOTLY_CONFIG);
@@ -805,7 +805,7 @@ document.addEventListener("DOMContentLoaded", () => {
             ...PLOTLY_LAYOUT,
             showlegend: true,
             autosize: true,
-            height: Math.max(biasedWrap.clientHeight, 400),
+            height: Math.max(biasedWrap.clientHeight, 600),
             yaxis: {
                 ...PLOTLY_LAYOUT.yaxis,
                 type: "linear",
@@ -844,7 +844,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 ...PLOTLY_LAYOUT,
                 showlegend: true,
                 autosize: true,
-                height: Math.max(signedBiasedWrap.clientHeight, 400),
+                height: Math.max(signedBiasedWrap.clientHeight, 600),
                 yaxis: {
                     ...PLOTLY_LAYOUT.yaxis,
                     type: "linear",
@@ -901,7 +901,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 ...PLOTLY_LAYOUT,
                 showlegend: true,
                 autosize: true,
-                height: Math.max(splitBiasedWrap.clientHeight, 400),
+                height: Math.max(splitBiasedWrap.clientHeight, 600),
                 yaxis: {
                     ...PLOTLY_LAYOUT.yaxis,
                     type: "linear",
@@ -950,7 +950,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 ...PLOTLY_LAYOUT,
                 showlegend: true,
                 autosize: true,
-                height: Math.max(quadSplitBiasedWrap.clientHeight, 400),
+                height: Math.max(quadSplitBiasedWrap.clientHeight, 600),
                 yaxis: {
                     ...PLOTLY_LAYOUT.yaxis,
                     type: "linear",
@@ -1010,7 +1010,7 @@ document.addEventListener("DOMContentLoaded", () => {
             ...PLOTLY_LAYOUT,
             showlegend: true,
             autosize: true,
-            height: Math.max(cdfWrap.clientHeight, 400),
+            height: Math.max(cdfWrap.clientHeight, 600),
             yaxis: {
                 ...PLOTLY_LAYOUT.yaxis,
                 type: "linear",

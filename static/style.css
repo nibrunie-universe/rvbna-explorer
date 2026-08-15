@@ -709,7 +709,7 @@ body {
 .chart-wrap {
     flex: 1;
     position: relative;
-    min-height: 450px;
+    min-height: 600px;
 }
 
 #plotly-chart {
@@ -740,6 +740,15 @@ body {
 
 .chart-placeholder.hidden {
     display: none;
+}
+
+.chart-description {
+    margin-top: 1rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-subtle);
 }
 
 /* Stats table */

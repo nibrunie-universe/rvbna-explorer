@@ -193,6 +193,9 @@
                             <p>Press <strong>Evaluate</strong> to generate results</p>
                         </div>
                     </div>
+                    <div class="chart-description">
+                        Displays the absolute relative error for each sample, sorted from smallest to largest error. This provides a baseline view of the overall error magnitude distribution without considering polarity.
+                    </div>
                 </div>
 
                 <!-- Data Statistics table -->
@@ -265,6 +268,9 @@
                     <div class="chart-wrap" id="biased-log2-wrap">
                         <div id="biased-log2-chart"></div>
                     </div>
+                    <div class="chart-description">
+                        Shows the logarithm base 2 of the relative errors, offset so that the minimum non-zero error is at 0. This scaling makes it easier to observe the distribution and spread of relative errors across a large dynamic range.
+                    </div>
                 </div>
 
                 <!-- Signed Biased Log2 Error chart -->
@@ -277,6 +283,9 @@
                     </div>
                     <div class="chart-wrap" id="signed-biased-log2-wrap">
                         <div id="signed-biased-log2-chart"></div>
+                    </div>
+                    <div class="chart-description">
+                        Displays the biased log₂ errors but preserves the original sign of the error. Positive values indicate that the approximation overestimates the expected result, while negative values indicate an underestimation.
                     </div>
                 </div>
 
@@ -291,6 +300,9 @@
                     <div class="chart-wrap" id="split-biased-log2-wrap">
                         <div id="split-biased-log2-chart"></div>
                     </div>
+                    <div class="chart-description">
+                        Separates the biased log₂ errors into two independent curves for each scheme: one representing positive errors and one representing negative errors. This is useful for analyzing potential biases where a scheme might tend to overestimate or underestimate more heavily.
+                    </div>
                 </div>
 
                 <!-- 4-Way Split Biased Log2 Error chart -->
@@ -303,6 +315,9 @@
                     </div>
                     <div class="chart-wrap" id="quad-split-biased-log2-wrap">
                         <div id="quad-split-biased-log2-chart"></div>
+                    </div>
+                    <div class="chart-description">
+                        Breaks down the biased log₂ errors into four quadrants, categorizing errors based on their own sign and the sign of the expected result. This provides a deep dive into the scheme's accuracy characteristics relative to the polarity of the data.
                     </div>
                 </div>
 
@@ -320,6 +335,9 @@
                     </div>
                     <div class="chart-wrap" id="cdf-wrap">
                         <div id="cdf-chart"></div>
+                    </div>
+                    <div class="chart-description">
+                        Plots the Cumulative Distribution Function (CDF) of the biased log₂ errors. For any point on the curve, the y-axis shows the fraction of samples that have an error less than or equal to the corresponding x-axis value.
                     </div>
                 </div>
             </main>
