@@ -1,3 +1,5 @@
+import plot_experiments
+import datetime
 from flask import Flask, request, jsonify, send_from_directory
 from rvbna_web import (
     correctlyRoundedDotProd,
@@ -66,16 +68,29 @@ def evaluate():
     b_distribution = data.get("bDistribution", "gaussian")
     b_average = float(data.get("bAverage", average))
     b_sigma = float(data.get("bSigma", sigma))
+    
+    seed_val = data.get("seed", None)
+    if seed_val is not None and str(seed_val).strip() != "":
+        try:
+            seed_val = int(seed_val)
+        except ValueError:
+            print(f"[ERROR] could not convert requested seed value {seed_val} to integer")
+            seed_val = None
+    else:
+        # generate a random seed
+        now = datetime.datetime.now()
+        seed_val = int(now.timestamp() * 1000)
 
     # dumping detected configuration
-    print(f"n={n}, k={k}, average={average}, sigma={sigma}, input_prec={input_prec_name}, a_distribution={a_distribution}, a_average={a_average}, a_sigma={a_sigma}, b_distribution={b_distribution}, b_average={b_average}, b_sigma={b_sigma}")
+    print(f"n={n}, k={k}, average={average}, sigma={sigma}, input_prec={input_prec_name}, a_distribution={a_distribution}, a_average={a_average}, a_sigma={a_sigma}, b_distribution={b_distribution}, b_average={b_average}, b_sigma={b_sigma}, seed={seed_val}")
 
     # Generate random vectors
     vectors = generate_vectors(n, k, average, sigma, input_prec=input_prec,
                                a_average=a_average, a_sigma=a_sigma,
                                b_average=b_average, b_sigma=b_sigma,
                                a_distribution=a_distribution,
-                               b_distribution=b_distribution)
+                               b_distribution=b_distribution,
+                               seed=seed_val)
 
     # Generate golden values (exact dot product)
     golden_values = [correctlyRoundedDotProd(a, b) for (a, b) in vectors]
@@ -138,6 +153,9 @@ def evaluate():
                 "finalPrec": final_prec,
             }, golden_values)
             results[name] = res
+
+    for k in results:
+        results[k]["seed"] = seed_val
 
     return jsonify(results)
 

@@ -100,7 +100,7 @@ def bulkNormDotProd(a, b, bulkNormPrec=25, finalPrec=24, prodFormats=(ExactForma
 
 def generate_vectors(n, k, average, sigma, input_prec=halfprecisionformat,
                      a_average=None, a_sigma=None, b_average=None, b_sigma=None,
-                     a_distribution="gaussian", b_distribution="gaussian"):
+                     a_distribution="gaussian", b_distribution="gaussian", seed=None):
     """Generate n pairs of k-element random vectors.
     
     Each vector can have its own distribution parameters.
@@ -112,16 +112,25 @@ def generate_vectors(n, k, average, sigma, input_prec=halfprecisionformat,
     b_avg = b_average if b_average is not None else average
     b_sig = b_sigma if b_sigma is not None else sigma
 
+    if seed is not None:
+        rng = random.Random(seed)
+        np_rng = np.random.default_rng(seed)
+    else:
+        rng = random
+        np_rng = np.random
+
     def _sample(distribution, avg, sig):
         if distribution == "uniform":
             # Uniform on [avg - sig, avg + sig]
-            return random.uniform(avg - sig, avg + sig)
+            return rng.uniform(avg - sig, avg + sig)
         elif distribution == "lognormal":
             # Log-normal with underlying normal(avg, sig)
-            return random.lognormvariate(avg, sig)
+            return rng.lognormvariate(avg, sig)
         else:  # gaussian (default)
-            return np.random.normal(avg, sig)
-            #return random.gauss(avg, sig)
+            if seed is not None:
+                return float(np_rng.normal(avg, sig))
+            else:
+                return float(np.random.normal(avg, sig))
 
     def genVector(k, distribution, avg, sig):
         return [round_sol(_sample(distribution, avg, sig), input_prec, RN) for _ in range(k)]

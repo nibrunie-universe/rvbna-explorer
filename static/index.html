@@ -88,11 +88,11 @@
                                 <div class="input-row">
                                     <div class="input-group">
                                         <label for="cfg-a-avg" id="lbl-a-avg">Mean (μ)</label>
-                                        <input type="number" id="cfg-a-avg" name="aAverage" value="5.0" step="0.1">
+                                        <input type="number" id="cfg-a-avg" name="aAverage" value="5.0" step="0.1" style="max-width: 100px;">
                                     </div>
                                     <div class="input-group">
                                         <label for="cfg-a-sigma" id="lbl-a-sigma">StdDev (σ)</label>
-                                        <input type="number" id="cfg-a-sigma" name="aSigma" value="5.0" step="0.1">
+                                        <input type="number" id="cfg-a-sigma" name="aSigma" value="5.0" step="0.1" style="max-width: 100px;">
                                     </div>
                                 </div>
                             </div>
@@ -115,23 +115,34 @@
                                 <div class="input-row">
                                     <div class="input-group">
                                         <label for="cfg-b-avg" id="lbl-b-avg">Mean (μ)</label>
-                                        <input type="number" id="cfg-b-avg" name="bAverage" value="5.0" step="0.1">
+                                        <input type="number" id="cfg-b-avg" name="bAverage" value="5.0" step="0.1" style="max-width: 100px;">
                                     </div>
                                     <div class="input-group">
                                         <label for="cfg-b-sigma" id="lbl-b-sigma">StdDev (σ)</label>
-                                        <input type="number" id="cfg-b-sigma" name="bSigma" value="5.0" step="0.1">
+                                        <input type="number" id="cfg-b-sigma" name="bSigma" value="5.0" step="0.1" style="max-width: 100px;">
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="input-group">
-                            <label for="cfg-input-prec">Input Precision</label>
-                            <select id="cfg-input-prec" name="inputPrec">
-                                <option value="bf16">BF16 (bfloat16)</option>
-                                <option value="fp16" selected>FP16 (half)</option>
-                                <option value="fp32">FP32 (single)</option>
-                                <option value="fp64">FP64 (double)</option>
-                            </select>
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label for="cfg-input-prec">Input Precision</label>
+                                <select id="cfg-input-prec" name="inputPrec">
+                                    <option value="bf16">BF16 (bfloat16)</option>
+                                    <option value="fp16" selected>FP16 (half)</option>
+                                    <option value="fp32">FP32 (single)</option>
+                                    <option value="fp64">FP64 (double)</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label for="cfg-seed" title="Optional seed for deterministic generation">Seed (Optional)</label>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <input type="number" id="cfg-seed" name="seed" placeholder="Random" style="flex: 1; max-width: 120px;">
+                                    <button type="button" id="gen-seed-btn" style="background: var(--surface-2); border: 1px solid var(--border-medium); color: var(--text-primary); border-radius: var(--radius-sm); padding: 0 0.5rem; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Generate Random Seed">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3"/></svg>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </section>
 
@@ -193,6 +204,7 @@
                         <table id="data-stats-table">
                             <thead>
                                 <tr>
+                                    <th>Seed</th>
                                     <th>Pos A</th>
                                     <th>Neg A</th>
                                     <th>Pos B</th>
@@ -200,7 +212,7 @@
                                 </tr>
                             </thead>
                             <tbody id="data-stats-body">
-                                <tr><td colspan="4" class="empty-state">No results yet</td></tr>
+                                <tr><td colspan="5" class="empty-state">No results yet</td></tr>
                             </tbody>
                         </table>
                     </div>

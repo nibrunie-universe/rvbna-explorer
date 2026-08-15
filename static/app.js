@@ -285,6 +285,16 @@ document.addEventListener("DOMContentLoaded", () => {
         addSchemeCard("bulk_norm");
     });
 
+    const genSeedBtn = document.getElementById("gen-seed-btn");
+    if (genSeedBtn) {
+        genSeedBtn.addEventListener("click", () => {
+            const seedInput = document.getElementById("cfg-seed");
+            if (seedInput) {
+                seedInput.value = Math.floor(Math.random() * 2147483647);
+            }
+        });
+    }
+
     // ═══════════════════════════════════════════════════════════════
     //  State sharing & restoring
     // ═══════════════════════════════════════════════════════════════
@@ -472,6 +482,10 @@ document.addEventListener("DOMContentLoaded", () => {
             if (state.n) document.getElementById("cfg-n").value = state.n;
             if (state.k) document.getElementById("cfg-k").value = state.k;
             if (state.inputPrec) document.getElementById("cfg-input-prec").value = state.inputPrec;
+            if (state.seed !== undefined && state.seed !== null) {
+                const seedInput = document.getElementById("cfg-seed");
+                if (seedInput) seedInput.value = state.seed;
+            }
 
             // Restore per-vector distribution params
             if (state.aDistribution) {
@@ -556,6 +570,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const bAvg = parseNum(fd.get("bAverage"), 5.0);
         const bSig = parseNum(fd.get("bSigma"), 5.0);
 
+        const seedVal = fd.get("seed");
+        const parsedSeed = seedVal ? parseInt(seedVal) : null;
+
         return {
             dataSource: fd.get("dataSource") || "random",
             n: parseInt(fd.get("n")) || 1000,
@@ -570,6 +587,7 @@ document.addEventListener("DOMContentLoaded", () => {
             bDistribution: fd.get("bDistribution") || "gaussian",
             bAverage: bAvg,
             bSigma: bSig,
+            seed: isNaN(parsedSeed) ? null : parsedSeed,
             schemes,
         };
     }
@@ -626,7 +644,7 @@ document.addEventListener("DOMContentLoaded", () => {
         setStatus("loading", "Evaluating…");
         statsBody.innerHTML = `<tr><td colspan="14" class="empty-state">Computing…</td></tr>`;
         const dataStatsBody = document.getElementById("data-stats-body");
-        if (dataStatsBody) dataStatsBody.innerHTML = `<tr><td colspan="4" class="empty-state">Computing…</td></tr>`;
+        if (dataStatsBody) dataStatsBody.innerHTML = `<tr><td colspan="5" class="empty-state">Computing…</td></tr>`;
 
         try {
             const resp = await fetch("/api/evaluate", {
@@ -637,13 +655,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (!resp.ok) throw new Error(`Server error ${resp.status}`);
             const data = await resp.json();
-            renderResults(data, payload.n);
+            renderResults(data, payload);
             setStatus("", "Done");
         } catch (err) {
             console.error(err);
             setStatus("error", "Error");
             statsBody.innerHTML = `<tr><td colspan="14" class="empty-state" style="color:var(--error)">Evaluation failed — ${err.message}</td></tr>`;
-            if (dataStatsBody) dataStatsBody.innerHTML = `<tr><td colspan="4" class="empty-state" style="color:var(--error)">Evaluation failed — ${err.message}</td></tr>`;
+            if (dataStatsBody) dataStatsBody.innerHTML = `<tr><td colspan="5" class="empty-state" style="color:var(--error)">Evaluation failed — ${err.message}</td></tr>`;
         } finally {
             evaluateBtn.disabled = false;
             btnLabel.style.display = "inline";
@@ -655,7 +673,8 @@ document.addEventListener("DOMContentLoaded", () => {
     //  Render results
     // ═══════════════════════════════════════════════════════════════
 
-    function renderResults(data, n) {
+    function renderResults(data, payload) {
+        const n = payload.n;
         lastEvalData = data;
         lastEvalN = n;
         biasedLog2Panel.style.display = "";
@@ -727,8 +746,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (dataStatsBody && entries.length > 0) {
             const firstRes = entries[0][1];
+            const seedText = firstRes.seed !== undefined && firstRes.seed !== null ? firstRes.seed : "Random";
             dataStatsBody.innerHTML = `
                 <tr>
+                    <td>${seedText}</td>
                     <td>${firstRes.pos_a_count}</td>
                     <td>${firstRes.neg_a_count}</td>
                     <td>${firstRes.pos_b_count}</td>
