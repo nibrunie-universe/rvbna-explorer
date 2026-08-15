@@ -1,4 +1,3 @@
-import plot_experiments
 import datetime
 from flask import Flask, request, jsonify, send_from_directory
 from rvbna_web import (
@@ -23,8 +22,12 @@ from flask_limiter.util import get_remote_address
 
 app = Flask(__name__, static_folder="static")
 
+# Maximum number of requests per minutes that the server serves
 MAX_REQUESTS_PER_MINUTE = 10
-VERSION = "0.0.6"
+# Maximum number of schemes the user is allowed to request at once
+MAX_SCHEME_NUM = 10
+# Current version of the application advertised on the user interface
+VERSION = "0.0.7"
 
 limiter = Limiter(
     get_remote_address,
@@ -49,6 +52,10 @@ def get_config():
 @app.route("/api/evaluate", methods=["POST"])
 def evaluate():
     data = request.json
+
+    schemes = data.get("schemes", [])
+    if len(schemes) > MAX_SCHEME_NUM:
+        return jsonify({"error": f"Too many schemes requested. Maximum allowed is {MAX_SCHEME_NUM}."}), 400
 
     # Distribution config
     n = int(data.get("n", 1000))
@@ -96,7 +103,6 @@ def evaluate():
     golden_values = [correctlyRoundedDotProd(a, b) for (a, b) in vectors]
 
     results = {}
-    schemes = data.get("schemes", [])
 
     for scheme in schemes:
         name = scheme.get("name")
