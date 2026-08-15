@@ -624,7 +624,9 @@ document.addEventListener("DOMContentLoaded", () => {
         btnLabel.style.display = "none";
         btnSpinner.style.display = "block";
         setStatus("loading", "Evaluating…");
-        statsBody.innerHTML = `<tr><td colspan="18" class="empty-state">Computing…</td></tr>`;
+        statsBody.innerHTML = `<tr><td colspan="14" class="empty-state">Computing…</td></tr>`;
+        const dataStatsBody = document.getElementById("data-stats-body");
+        if (dataStatsBody) dataStatsBody.innerHTML = `<tr><td colspan="4" class="empty-state">Computing…</td></tr>`;
 
         try {
             const resp = await fetch("/api/evaluate", {
@@ -640,7 +642,8 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (err) {
             console.error(err);
             setStatus("error", "Error");
-            statsBody.innerHTML = `<tr><td colspan="18" class="empty-state" style="color:var(--error)">Evaluation failed — ${err.message}</td></tr>`;
+            statsBody.innerHTML = `<tr><td colspan="14" class="empty-state" style="color:var(--error)">Evaluation failed — ${err.message}</td></tr>`;
+            if (dataStatsBody) dataStatsBody.innerHTML = `<tr><td colspan="4" class="empty-state" style="color:var(--error)">Evaluation failed — ${err.message}</td></tr>`;
         } finally {
             evaluateBtn.disabled = false;
             btnLabel.style.display = "inline";
@@ -666,8 +669,14 @@ document.addEventListener("DOMContentLoaded", () => {
         if (cdfPanel) cdfPanel.style.display = "";
         chartPlaceholder.classList.add("hidden");
 
+        const dataStatsPanel = document.getElementById("data-stats-panel");
+        if (dataStatsPanel) dataStatsPanel.style.display = "";
+
         const traces = [];
         statsBody.innerHTML = "";
+        
+        const dataStatsBody = document.getElementById("data-stats-body");
+        if (dataStatsBody) dataStatsBody.innerHTML = "";
 
         const entries = Object.entries(data).sort(
             ([, a], [, b]) => a.geometric_mean - b.geometric_mean
@@ -709,16 +718,24 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td>${fmtSci(results.sum_signed_error)}</td>
                 <td>${results.pos_count}</td>
                 <td>${results.neg_count}</td>
-                <td>${results.pos_a_count}</td>
-                <td>${results.neg_a_count}</td>
-                <td>${results.pos_b_count}</td>
-                <td>${results.neg_b_count}</td>
                 <td>${results.exact_pos_count}</td>
                 <td>${results.exact_neg_count}</td>
                 <td>${results.opposite_sign_count}</td>
             `;
             statsBody.appendChild(tr);
         });
+
+        if (dataStatsBody && entries.length > 0) {
+            const firstRes = entries[0][1];
+            dataStatsBody.innerHTML = `
+                <tr>
+                    <td>${firstRes.pos_a_count}</td>
+                    <td>${firstRes.neg_a_count}</td>
+                    <td>${firstRes.pos_b_count}</td>
+                    <td>${firstRes.neg_b_count}</td>
+                </tr>
+            `;
+        }
 
         // Render Plotly chart
         const chartDiv = document.getElementById("plotly-chart");
