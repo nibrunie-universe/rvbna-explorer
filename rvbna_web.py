@@ -57,7 +57,7 @@ def roundToOddFixed(v, lsbIndex=0):
     v = abs(v)
     scalingFactor = SollyaObject(2) ** (-lsbIndex)
     try:
-        scaled = int(v * scalingFactor)
+        scaled = int(floor_sol(v * scalingFactor))
     except ValueError as e:
         print(v)
         raise
