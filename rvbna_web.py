@@ -139,7 +139,19 @@ def evaluate_errors(vectors, func, kwargs, golden_values):
     neg_a_count = 0
     pos_b_count = 0
     neg_b_count = 0
+    exact_pos_count = 0
+    exact_neg_count = 0
+    opposite_sign_count = 0
+    err_pos_res_pos = []
+    err_neg_res_pos = []
+    err_pos_res_neg = []
+    err_neg_res_neg = []
     for ((a, b), golden) in zip(vectors, golden_values):
+        if golden > 0:
+            exact_pos_count += 1
+        elif golden < 0:
+            exact_neg_count += 1
+            
         for ai in a:
             if ai > 0: pos_a_count += 1
             elif ai < 0: neg_a_count += 1
@@ -148,6 +160,10 @@ def evaluate_errors(vectors, func, kwargs, golden_values):
             elif bi < 0: neg_b_count += 1
             
         res = func(a, b, **kwargs)
+        
+        if (res > 0 and golden < 0) or (res < 0 and golden > 0):
+            opposite_sign_count += 1
+            
         err = res - golden
         abs_error = abs(err)
         if golden == 0:
@@ -157,6 +173,18 @@ def evaluate_errors(vectors, func, kwargs, golden_values):
             rel_error = abs(abs_error / golden)
             # Here, we are interested in the sign of the error regardless of the sign of the golden value
             signed_rel_error = float(err / abs(golden))
+            
+        if golden > 0:
+            if signed_rel_error > 0:
+                err_pos_res_pos.append(float(signed_rel_error))
+            elif signed_rel_error < 0:
+                err_neg_res_pos.append(float(signed_rel_error))
+        elif golden < 0:
+            if signed_rel_error > 0:
+                err_pos_res_neg.append(float(signed_rel_error))
+            elif signed_rel_error < 0:
+                err_neg_res_neg.append(float(signed_rel_error))
+                
         # Check if the result is NaN (Not a Number).
         if abs_error != abs_error or rel_error != rel_error:
             print(f"NaN error detected, func={func.__name__}, a={a}, b={b}, golden={golden}, res={res}")
@@ -206,4 +234,11 @@ def evaluate_errors(vectors, func, kwargs, golden_values):
         "neg_a_count": neg_a_count,
         "pos_b_count": pos_b_count,
         "neg_b_count": neg_b_count,
+        "exact_pos_count": exact_pos_count,
+        "exact_neg_count": exact_neg_count,
+        "opposite_sign_count": opposite_sign_count,
+        "sorted_err_pos_res_pos": sorted(err_pos_res_pos),
+        "sorted_err_neg_res_pos": sorted(err_neg_res_pos),
+        "sorted_err_pos_res_neg": sorted(err_pos_res_neg),
+        "sorted_err_neg_res_neg": sorted(err_neg_res_neg),
     }

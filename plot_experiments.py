@@ -51,6 +51,9 @@ def main():
     total_neg_a = {s["name"]: 0 for s in schemes}
     total_pos_b = {s["name"]: 0 for s in schemes}
     total_neg_b = {s["name"]: 0 for s in schemes}
+    total_exact_pos = {s["name"]: 0 for s in schemes}
+    total_exact_neg = {s["name"]: 0 for s in schemes}
+    total_opposite_sign = {s["name"]: 0 for s in schemes}
 
     for n in ns:
         print(f"Evaluating n={n}...")
@@ -100,15 +103,18 @@ def main():
             total_neg_a[name] += res["neg_a_count"]
             total_pos_b[name] += res["pos_b_count"]
             total_neg_b[name] += res["neg_b_count"]
+            total_exact_pos[name] += res["exact_pos_count"]
+            total_exact_neg[name] += res["exact_neg_count"]
+            total_opposite_sign[name] += res["opposite_sign_count"]
 
     print("\nError Direction Summary (aggregated over all N):")
-    print("-" * 115)
-    print(f"{'Scheme':<40} | {'Pos Errors':<10} | {'Neg Errors':<10} | {'Pos A':<8} | {'Neg A':<8} | {'Pos B':<8} | {'Neg B':<8}")
-    print("-" * 115)
+    print("-" * 148)
+    print(f"{'Scheme':<40} | {'Pos Errors':<10} | {'Neg Errors':<10} | {'Pos A':<8} | {'Neg A':<8} | {'Pos B':<8} | {'Neg B':<8} | {'Exact Pos':<9} | {'Exact Neg':<9} | {'Opp Sign':<8}")
+    print("-" * 148)
     for scheme in schemes:
         name = scheme.get("name")
-        print(f"{name:<40} | {total_pos[name]:<10} | {total_neg[name]:<10} | {total_pos_a[name]:<8} | {total_neg_a[name]:<8} | {total_pos_b[name]:<8} | {total_neg_b[name]:<8}")
-    print("-" * 115 + "\n")
+        print(f"{name:<40} | {total_pos[name]:<10} | {total_neg[name]:<10} | {total_pos_a[name]:<8} | {total_neg_a[name]:<8} | {total_pos_b[name]:<8} | {total_neg_b[name]:<8} | {total_exact_pos[name]:<9} | {total_exact_neg[name]:<9} | {total_opposite_sign[name]:<8}")
+    print("-" * 148 + "\n")
 
     plt.figure(figsize=(15, 6))
     

@@ -24,6 +24,18 @@ document.addEventListener("DOMContentLoaded", () => {
         })
         .catch(err => console.error("Error fetching version:", err));
 
+    fetch('/api/config')
+        .then(res => res.json())
+        .then(data => {
+            const nInput = document.getElementById('cfg-n');
+            if (nInput && data.max_n) {
+                nInput.max = data.max_n;
+                // update title so user knows the max
+                nInput.title = `Maximum allowed is ${data.max_n}`;
+            }
+        })
+        .catch(err => console.error("Error fetching config:", err));
+
     let lastEvalData = null;
     let lastEvalN = 0;
 
@@ -449,11 +461,14 @@ document.addEventListener("DOMContentLoaded", () => {
             const json = decodeURIComponent(atob(b64));
             const state = JSON.parse(json);
 
+            // adding console logging of state
+            console.log("Restoring state from hash:", state);
+
             // Restore form fields
-            if (state.dataSource) {
-                document.getElementById("cfg-data-source").value = state.dataSource;
-                document.getElementById("cfg-data-source").dispatchEvent(new Event("change"));
-            }
+            //if (state.dataSource) {
+            //    document.getElementById("cfg-data-source").value = state.dataSource;
+            //    document.getElementById("cfg-data-source").dispatchEvent(new Event("change"));
+            //}
             if (state.n) document.getElementById("cfg-n").value = state.n;
             if (state.k) document.getElementById("cfg-k").value = state.k;
             if (state.inputPrec) document.getElementById("cfg-input-prec").value = state.inputPrec;
@@ -463,21 +478,21 @@ document.addEventListener("DOMContentLoaded", () => {
                 document.getElementById("cfg-a-dist").value = state.aDistribution;
                 updateDistLabels("a", state.aDistribution);
             }
-            if (state.aAverage !== undefined) document.getElementById("cfg-a-avg").value = state.aAverage;
-            if (state.aSigma !== undefined) document.getElementById("cfg-a-sigma").value = state.aSigma;
+            if (state.aAverage != null) document.getElementById("cfg-a-avg").value = state.aAverage;
+            if (state.aSigma != null) document.getElementById("cfg-a-sigma").value = state.aSigma;
             if (state.bDistribution) {
                 document.getElementById("cfg-b-dist").value = state.bDistribution;
                 updateDistLabels("b", state.bDistribution);
             }
-            if (state.bAverage !== undefined) document.getElementById("cfg-b-avg").value = state.bAverage;
-            if (state.bSigma !== undefined) document.getElementById("cfg-b-sigma").value = state.bSigma;
+            if (state.bAverage != null) document.getElementById("cfg-b-avg").value = state.bAverage;
+            if (state.bSigma != null) document.getElementById("cfg-b-sigma").value = state.bSigma;
 
             // Backward compat: restore old shared average/sigma into both vectors
-            if (state.average !== undefined && state.aAverage === undefined) {
+            if (state.average != null && state.aAverage == null) {
                 document.getElementById("cfg-a-avg").value = state.average;
                 document.getElementById("cfg-b-avg").value = state.average;
             }
-            if (state.sigma !== undefined && state.aSigma === undefined) {
+            if (state.sigma != null && state.aSigma == null) {
                 document.getElementById("cfg-a-sigma").value = state.sigma;
                 document.getElementById("cfg-b-sigma").value = state.sigma;
             }
@@ -531,10 +546,15 @@ document.addEventListener("DOMContentLoaded", () => {
             schemes.push(entry);
         });
 
-        const aAvg = parseFloat(fd.get("aAverage"));
-        const aSig = parseFloat(fd.get("aSigma"));
-        const bAvg = parseFloat(fd.get("bAverage"));
-        const bSig = parseFloat(fd.get("bSigma"));
+        const parseNum = (val, defaultVal) => {
+            const p = parseFloat(val);
+            return isNaN(p) ? defaultVal : p;
+        };
+
+        const aAvg = parseNum(fd.get("aAverage"), 5.0);
+        const aSig = parseNum(fd.get("aSigma"), 5.0);
+        const bAvg = parseNum(fd.get("bAverage"), 5.0);
+        const bSig = parseNum(fd.get("bSigma"), 5.0);
 
         return {
             dataSource: fd.get("dataSource") || "random",
@@ -604,7 +624,7 @@ document.addEventListener("DOMContentLoaded", () => {
         btnLabel.style.display = "none";
         btnSpinner.style.display = "block";
         setStatus("loading", "Evaluating…");
-        statsBody.innerHTML = `<tr><td colspan="15" class="empty-state">Computing…</td></tr>`;
+        statsBody.innerHTML = `<tr><td colspan="18" class="empty-state">Computing…</td></tr>`;
 
         try {
             const resp = await fetch("/api/evaluate", {
@@ -620,7 +640,7 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (err) {
             console.error(err);
             setStatus("error", "Error");
-            statsBody.innerHTML = `<tr><td colspan="15" class="empty-state" style="color:var(--error)">Evaluation failed — ${err.message}</td></tr>`;
+            statsBody.innerHTML = `<tr><td colspan="18" class="empty-state" style="color:var(--error)">Evaluation failed — ${err.message}</td></tr>`;
         } finally {
             evaluateBtn.disabled = false;
             btnLabel.style.display = "inline";
@@ -640,7 +660,10 @@ document.addEventListener("DOMContentLoaded", () => {
         if (signedBiasedLog2Panel) signedBiasedLog2Panel.style.display = "";
         const splitBiasedLog2Panel = document.getElementById("split-biased-log2-panel");
         if (splitBiasedLog2Panel) splitBiasedLog2Panel.style.display = "";
-        cdfPanel.style.display = "";
+        const quadSplitBiasedLog2Panel = document.getElementById("quad-split-biased-log2-panel");
+        if (quadSplitBiasedLog2Panel) quadSplitBiasedLog2Panel.style.display = "";
+        const cdfPanel = document.getElementById("cdf-panel");
+        if (cdfPanel) cdfPanel.style.display = "";
         chartPlaceholder.classList.add("hidden");
 
         const traces = [];
@@ -690,6 +713,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td>${results.neg_a_count}</td>
                 <td>${results.pos_b_count}</td>
                 <td>${results.neg_b_count}</td>
+                <td>${results.exact_pos_count}</td>
+                <td>${results.exact_neg_count}</td>
+                <td>${results.opposite_sign_count}</td>
             `;
             statsBody.appendChild(tr);
         });
@@ -847,6 +873,55 @@ document.addEventListener("DOMContentLoaded", () => {
                     ...PLOTLY_LAYOUT.xaxis,
                     title: { text: "Sorted sample index", standoff: 10 },
                 },
+            }, PLOTLY_CONFIG);
+        }
+
+        // ── 4-Way Split Biased Log₂ Error chart ──────────────────────────────
+        const quadSplitBiasedTraces = [];
+        entries.forEach(([schemeName, results], idx) => {
+            const color = SCHEME_COLORS[idx % SCHEME_COLORS.length];
+            
+            const errPosResPos = results.sorted_err_pos_res_pos || [];
+            const errNegResPos = results.sorted_err_neg_res_pos || [];
+            const errPosResNeg = results.sorted_err_pos_res_neg || [];
+            const errNegResNeg = results.sorted_err_neg_res_neg || [];
+            
+            const processErrors = (arr, isNegError) => {
+                return arr.map(v => isNegError ? (Math.log2(Math.abs(v)) - minLog2) : (Math.log2(v) - minLog2)).sort((a, b) => a - b);
+            };
+            
+            const y1 = processErrors(errPosResPos, false);
+            const y2 = processErrors(errNegResPos, true);
+            const y3 = processErrors(errPosResNeg, false);
+            const y4 = processErrors(errNegResNeg, true);
+            
+            const x1 = Array.from({ length: y1.length }, (_, i) => i);
+            const x2 = Array.from({ length: y2.length }, (_, i) => i);
+            const x3 = Array.from({ length: y3.length }, (_, i) => i);
+            const x4 = Array.from({ length: y4.length }, (_, i) => i);
+            
+            if (y1.length > 0) quadSplitBiasedTraces.push({ x: x1, y: y1, type: "scattergl", mode: "lines", name: schemeName + " (+Err, +Res)", line: { color, width: 2, dash: 'solid' }, hovertemplate: "%{y:.2f}<extra>" + schemeName + " (+Err, +Res)</extra>" });
+            if (y2.length > 0) quadSplitBiasedTraces.push({ x: x2, y: y2, type: "scattergl", mode: "lines", name: schemeName + " (-Err, +Res)", line: { color, width: 2, dash: 'dot' }, hovertemplate: "%{y:.2f}<extra>" + schemeName + " (-Err, +Res)</extra>" });
+            if (y3.length > 0) quadSplitBiasedTraces.push({ x: x3, y: y3, type: "scattergl", mode: "lines", name: schemeName + " (+Err, -Res)", line: { color, width: 2, dash: 'dash' }, hovertemplate: "%{y:.2f}<extra>" + schemeName + " (+Err, -Res)</extra>" });
+            if (y4.length > 0) quadSplitBiasedTraces.push({ x: x4, y: y4, type: "scattergl", mode: "lines", name: schemeName + " (-Err, -Res)", line: { color, width: 2, dash: 'dashdot' }, hovertemplate: "%{y:.2f}<extra>" + schemeName + " (-Err, -Res)</extra>" });
+        });
+
+        const quadSplitBiasedWrap = document.getElementById("quad-split-biased-log2-wrap");
+        if (quadSplitBiasedWrap) {
+            Plotly.react("quad-split-biased-log2-chart", quadSplitBiasedTraces, {
+                ...PLOTLY_LAYOUT,
+                showlegend: true,
+                autosize: true,
+                height: Math.max(quadSplitBiasedWrap.clientHeight, 400),
+                yaxis: {
+                    ...PLOTLY_LAYOUT.yaxis,
+                    type: "linear",
+                    title: { text: "Biased log₂(|error|)", standoff: 10 },
+                },
+                xaxis: {
+                    ...PLOTLY_LAYOUT.xaxis,
+                    title: { text: "Sorted sample index", standoff: 10 },
+                }
             }, PLOTLY_CONFIG);
         }
 

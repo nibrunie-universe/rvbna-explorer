@@ -79,10 +79,10 @@ def main():
 
     # Print results as a formatted table
     print("\nResults:")
-    print("-" * 235)
-    header = f"{'Scheme':<40} | {'Min Error':<12} | {'Max Error':<12} | {'Geo Mean':<12} | {'Exact Hits':<15} | {'Avg Signed Rel':<14} | {'Avg Signed Err':<14} | {'Sum Signed Rel':<14} | {'Sum Signed Err':<14} | {'Pos Errors':<10} | {'Neg Errors':<10} | {'Pos A':<8} | {'Neg A':<8} | {'Pos B':<8} | {'Neg B':<8}"
+    print("-" * 275)
+    header = f"{'Scheme':<40} | {'Min Error':<12} | {'Max Error':<12} | {'Geo Mean':<12} | {'Exact Hits':<15} | {'Avg Signed Rel':<14} | {'Avg Signed Err':<14} | {'Sum Signed Rel':<14} | {'Sum Signed Err':<14} | {'Pos Errors':<10} | {'Neg Errors':<10} | {'Pos A':<8} | {'Neg A':<8} | {'Pos B':<8} | {'Neg B':<8} | {'Exact Pos':<9} | {'Exact Neg':<9} | {'Opp Sign':<8}"
     print(header)
-    print("-" * 235)
+    print("-" * 275)
     
     # Sort results by geometric mean to match the web app
     results.sort(key=lambda x: x[1]["geometric_mean"])
@@ -90,10 +90,10 @@ def main():
     for name, r in results:
         exact_pct = (r['exact_count'] / args.samples) * 100
         exact_str = f"{exact_pct:.1f}% ({r['exact_count']})"
-        row = f"{name:<40} | {r['min']:<12.3e} | {r['max']:<12.3e} | {r['geometric_mean']:<12.3e} | {exact_str:<15} | {r['mean_signed_rel_error']:<14.3e} | {r['mean_signed_error']:<14.3e} | {r['sum_signed_rel_error']:<14.3e} | {r['sum_signed_error']:<14.3e} | {r['pos_count']:<10} | {r['neg_count']:<10} | {r['pos_a_count']:<8} | {r['neg_a_count']:<8} | {r['pos_b_count']:<8} | {r['neg_b_count']:<8}"
+        row = f"{name:<40} | {r['min']:<12.3e} | {r['max']:<12.3e} | {r['geometric_mean']:<12.3e} | {exact_str:<15} | {r['mean_signed_rel_error']:<14.3e} | {r['mean_signed_error']:<14.3e} | {r['sum_signed_rel_error']:<14.3e} | {r['sum_signed_error']:<14.3e} | {r['pos_count']:<10} | {r['neg_count']:<10} | {r['pos_a_count']:<8} | {r['neg_a_count']:<8} | {r['pos_b_count']:<8} | {r['neg_b_count']:<8} | {r['exact_pos_count']:<9} | {r['exact_neg_count']:<9} | {r['opposite_sign_count']:<8}"
         print(row)
         
-    print("-" * 235)
+    print("-" * 275)
 
 if __name__ == "__main__":
     main()

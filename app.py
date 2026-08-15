@@ -12,6 +12,10 @@ from rvbna_web import (
     halfprecisionformat,
 )
 
+import os
+
+MAX_N = int(os.environ.get("MAX_N", 50000))
+
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
@@ -36,6 +40,10 @@ def index():
 def get_version():
     return jsonify({"version": VERSION})
 
+@app.route("/api/config")
+def get_config():
+    return jsonify({"max_n": MAX_N})
+
 @app.route("/api/evaluate", methods=["POST"])
 def evaluate():
     data = request.json
@@ -49,7 +57,7 @@ def evaluate():
     input_prec = FORMAT_MAP.get(input_prec_name, halfprecisionformat)
 
     # Clamp n to avoid extreme computation
-    n = min(n, 50000)
+    n = min(n, MAX_N)
 
     # Per-vector distribution parameters
     a_distribution = data.get("aDistribution", "gaussian")
