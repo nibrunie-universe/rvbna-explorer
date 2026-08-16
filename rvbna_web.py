@@ -14,6 +14,13 @@ FORMAT_MAP = {
     "fp64": doubleformat,
 }
 
+def exactDotProd(a, b):
+    """Exact dot product: no intermediate rounding, exact accumulation, no final rounding."""
+    s = SollyaObject(0.0)
+    for p in (ai * bi for (ai, bi) in zip(a, b)):
+        s += p
+    return s
+
 def correctlyRoundedDotProd(a, b, resPrec=singleformat):
     """Correctly rounded dot product: no intermediate rounding,
     exact accumulation then a single final round."""

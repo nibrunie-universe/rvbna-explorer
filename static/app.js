@@ -82,11 +82,13 @@ document.addEventListener("DOMContentLoaded", () => {
     // ── Scheme type definitions ──────────────────────────────────
     // Each type has a label, description, and a list of configurable parameters.
     const SCHEME_TYPES = {
-        exact: {
-            label: "Exact Dot Product",
+        correctly_rounded: {
+            label: "Correctly Rounded Dot Product",
             desc: "No intermediate rounding. Exact accumulation, single final round.",
-            badge: "REF",
-            params: [],
+            badge: "CR",
+            params: [
+                { key: "resPrec", label: "Final Prec", type: "select", options: ["bf16", "fp16", "fp32", "fp64"], default: "fp32" },
+            ],
         },
         approx_mult: {
             label: "FP MUL + Exact Acc",
@@ -202,7 +204,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /** Create and append a new scheme card */
-    function addSchemeCard(initialType = "exact", initialParams = {}, isActive = true) {
+    function addSchemeCard(initialType = "correctly_rounded", initialParams = {}, isActive = true) {
         const id = schemeCounter++;
         const card = document.createElement("div");
         card.className = "scheme-card" + (isActive ? " active" : "");
@@ -529,7 +531,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Automatically evaluate if state was restored from URL
         setTimeout(() => evaluateBtn.click(), 50);
     } else {
-        addSchemeCard("exact");
+        addSchemeCard("correctly_rounded");
         addSchemeCard("approx_mult");
         addSchemeCard("approx_mult_acc");
         addSchemeCard("fma");
@@ -594,8 +596,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function buildSchemeName(variant, params) {
         switch (variant) {
-            case "exact":
-                return "Exact Dot Product";
+            case "correctly_rounded":
+                return `Correctly Rounded [${(params.resPrec || "fp32").toUpperCase()}]`;
             case "approx_mult":
                 return `FP MUL [${(params.multPrec || "fp16").toUpperCase()}] + Exact Acc`;
             case "approx_mult_acc":

@@ -1,6 +1,7 @@
 import datetime
 from flask import Flask, request, jsonify, send_from_directory
 from rvbna_web import (
+    exactDotProd,
     correctlyRoundedDotProd,
     approxMultDotProd,
     approxMultAccDotProd,
@@ -100,7 +101,7 @@ def evaluate():
                                seed=seed_val)
 
     # Generate golden values (exact dot product)
-    golden_values = [correctlyRoundedDotProd(a, b) for (a, b) in vectors]
+    golden_values = [exactDotProd(a, b) for (a, b) in vectors]
 
     results = {}
 
@@ -108,18 +109,11 @@ def evaluate():
         name = scheme.get("name")
         variant = scheme.get("variant")
 
-        if variant == "exact":
-            res = evaluate_errors(vectors, correctlyRoundedDotProd, {}, golden_values)
-            # we do not expect any errors here, if any error is found, we should log it for debug
-            print("exact_count", res["exact_count"])
-            print("n", n)
-            print("max", res["max"])
-            if res["max"] > 0 or res["exact_count"] != n:
-                # print the sorted errors which exceed 0
-                for err in res["sorted_rel_errors"]:
-                    if err > 0:
-                        print("Exact dot product found with error:", err)
-                app.logger.error(f"Exact dot product found with errors: {res}")
+        if variant == "correctly_rounded":
+            res_prec_name = scheme.get("resPrec", "fp32")
+            res = evaluate_errors(vectors, correctlyRoundedDotProd, {
+                "resPrec": FORMAT_MAP.get(res_prec_name, singleformat)
+            }, golden_values)
             results[name] = res
 
         elif variant == "approx_mult":
