@@ -12,6 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const shareBtn = document.getElementById("share-btn");
     const downloadCsvBtn = document.getElementById("download-csv-btn");
     const downloadCdfBtn = document.getElementById("download-cdf-btn");
+    const downloadStatsCsvBtn = document.getElementById("download-stats-csv-btn");
     const biasedLog2Panel = document.getElementById("biased-log2-panel");
     const cdfPanel = document.getElementById("cdf-panel");
     const toast = document.getElementById("toast");
@@ -503,6 +504,46 @@ document.addEventListener("DOMContentLoaded", () => {
 
         showToast("CDF CSV downloaded!");
     });
+
+    // ── Statistics CSV download ──────────────────────────────────
+    if (downloadStatsCsvBtn) {
+        downloadStatsCsvBtn.addEventListener("click", () => {
+            if (!lastEvalData) return;
+
+            const entries = Object.entries(lastEvalData).sort(
+                ([, a], [, b]) => a.geometric_mean - b.geometric_mean
+            );
+
+            let csv = "Scheme,Min Error,Max Error,Geometric Mean,Exact Hits,Avg Signed Rel. Error,Avg Signed Error,Sum Signed Rel. Error,Sum Signed Error,Pos Errors,Neg Errors,Exact Pos,Exact Neg,Opp Sign\n";
+
+            for (const [schemeName, results] of entries) {
+                csv += `"${schemeName}",`;
+                csv += `${results.min_error},`;
+                csv += `${results.max_error},`;
+                csv += `${results.geometric_mean},`;
+                csv += `${results.exact_hits},`;
+                csv += `${results.avg_signed_rel_error},`;
+                csv += `${results.avg_signed_error},`;
+                csv += `${results.sum_signed_rel_error},`;
+                csv += `${results.sum_signed_error},`;
+                csv += `${results.positive_errors},`;
+                csv += `${results.negative_errors},`;
+                csv += `${results.exact_positives},`;
+                csv += `${results.exact_negatives},`;
+                csv += `${results.opposite_sign}\n`;
+            }
+
+            const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "rvbna_statistics.csv";
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            showToast("Statistics CSV downloaded!");
+        });
+    }
 
     function restoreStateFromHash() {
         const hash = window.location.hash;
