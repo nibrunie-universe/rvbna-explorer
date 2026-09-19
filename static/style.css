@@ -325,6 +325,34 @@ body {
     flex-shrink: 0;
 }
 
+.scheme-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
+}
+
+.scheme-name-input {
+    background: transparent;
+    border: 1px dashed var(--border-subtle);
+    color: var(--text-secondary);
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    padding: 3px 6px;
+    border-radius: var(--radius-sm);
+    width: 100%;
+    box-sizing: border-box;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.scheme-name-input:focus, .scheme-name-input:not(:placeholder-shown) {
+    border-color: var(--primary);
+    color: var(--text-primary);
+}
+
+
 /* Type selector dropdown inside the card header */
 .scheme-type-select {
     background: var(--surface-1);
@@ -351,8 +379,8 @@ body {
     box-shadow: 0 0 0 2px var(--accent-glow);
 }
 
-/* Remove button */
-.remove-scheme-btn {
+/* Action buttons */
+.scheme-action-btn {
     display: grid;
     place-items: center;
     width: 26px;
@@ -365,10 +393,23 @@ body {
     transition: all 0.2s ease;
 }
 
-.remove-scheme-btn:hover {
+.scheme-action-btn:hover {
+    background: var(--surface-2);
+    border-color: var(--border-subtle);
+    color: var(--text-primary);
+}
+
+.scheme-action-btn.remove-scheme-btn:hover {
     background: rgba(248, 113, 113, 0.12);
     border-color: rgba(248, 113, 113, 0.3);
     color: var(--error);
+}
+
+/* Disable up/down buttons on boundaries */
+.scheme-card:first-child .move-up-btn,
+.scheme-card:last-child .move-down-btn {
+    opacity: 0.3;
+    pointer-events: none;
 }
 
 .scheme-name {

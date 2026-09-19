@@ -233,15 +233,24 @@ document.addEventListener("DOMContentLoaded", () => {
                         <input type="checkbox" class="scheme-toggle" ${isActive ? "checked" : ""}>
                         <span class="toggle-track"><span class="toggle-thumb"></span></span>
                     </label>
-                    <select class="scheme-type-select">
-                        ${Object.entries(SCHEME_TYPES)
-                            .map(([key, def]) => `<option value="${key}"${key === initialType ? " selected" : ""}>${def.label}</option>`)
-                            .join("")}
-                    </select>
+                    <div class="scheme-title-group">
+                        <select class="scheme-type-select">
+                            ${Object.entries(SCHEME_TYPES)
+                                .map(([key, def]) => `<option value="${key}"${key === initialType ? " selected" : ""}>${def.label}</option>`)
+                                .join("")}
+                        </select>
+                        <input type="text" class="scheme-name-input" placeholder="Custom name (auto)" value="${initialParams.customName || ''}" aria-label="Custom scheme name">
+                    </div>
                 </div>
                 <div class="scheme-header-right">
                     ${badgeHTML}
-                    <button type="button" class="remove-scheme-btn" title="Remove scheme" aria-label="Remove scheme">
+                    <button type="button" class="scheme-action-btn move-up-btn" title="Move up" aria-label="Move up">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg>
+                    </button>
+                    <button type="button" class="scheme-action-btn move-down-btn" title="Move down" aria-label="Move down">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+                    </button>
+                    <button type="button" class="scheme-action-btn remove-scheme-btn" title="Remove scheme" aria-label="Remove scheme">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                     </button>
                 </div>
@@ -279,9 +288,29 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         // Wire up remove button
-        card.querySelector(".remove-scheme-btn").addEventListener("click", () => {
-            card.style.animation = "fadeSlideOut 0.25s ease forwards";
-            card.addEventListener("animationend", () => card.remove(), { once: true });
+        const removeBtn = card.querySelector(".remove-scheme-btn");
+        removeBtn.addEventListener("click", () => {
+            card.style.opacity = "0";
+            card.style.transform = "scale(0.95)";
+            setTimeout(() => card.remove(), 200);
+        });
+
+        // Wire up move up button
+        const moveUpBtn = card.querySelector(".move-up-btn");
+        moveUpBtn.addEventListener("click", () => {
+            const prev = card.previousElementSibling;
+            if (prev) {
+                card.parentNode.insertBefore(card, prev);
+            }
+        });
+
+        // Wire up move down button
+        const moveDownBtn = card.querySelector(".move-down-btn");
+        moveDownBtn.addEventListener("click", () => {
+            const next = card.nextElementSibling;
+            if (next) {
+                card.parentNode.insertBefore(next, card);
+            }
         });
 
         schemesContainer.appendChild(card);
@@ -572,7 +601,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 entry[param.dataset.param] = param.value;
             });
 
-            entry.name = buildSchemeName(variant, entry);
+            const customNameInput = card.querySelector(".scheme-name-input");
+            const customName = customNameInput ? customNameInput.value.trim() : "";
+            if (customName) entry.customName = customName;
+            
+            entry.name = customName || buildSchemeName(variant, entry);
             schemes.push(entry);
         });
 
