@@ -70,6 +70,8 @@ def roundToOddFixed(v, lsbIndex=0):
         raise
     notExact = (scaled / scalingFactor) != v
     rounded = scaled | (1 if notExact else 0)
+    # TODO: need to handle overflow 
+    # TODO: need to handle underflow 
     return (-1 if sign else 1) * rounded / scalingFactor
 
 def roundToOdd(v, prec: int, emin=None):
