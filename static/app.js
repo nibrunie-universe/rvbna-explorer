@@ -16,11 +16,22 @@ document.addEventListener("DOMContentLoaded", () => {
     const cdfPanel = document.getElementById("cdf-panel");
     const toast = document.getElementById("toast");
 
+    let currentAppVersion = null;
+    let loadedStateVersion = null;
+
     fetch('/api/version')
         .then(res => res.json())
         .then(data => {
+            currentAppVersion = data.version;
             const versionEl = document.getElementById('app-version');
             if (versionEl) versionEl.textContent = data.version;
+
+            if (loadedStateVersion && loadedStateVersion !== currentAppVersion) {
+                console.warn(`Warning: State was saved with version ${loadedStateVersion}, but current version is ${currentAppVersion}`);
+                setTimeout(() => {
+                    showToast(`Warning: State saved on v${loadedStateVersion}, current app v${currentAppVersion}.`);
+                }, 2000);
+            }
         })
         .catch(err => console.error("Error fetching version:", err));
 
@@ -475,6 +486,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // adding console logging of state
             console.log("Restoring state from hash:", state);
+            if (state.appVersion) {
+                loadedStateVersion = state.appVersion;
+            }
 
             // Restore form fields
             //if (state.dataSource) {
@@ -576,6 +590,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const parsedSeed = seedVal ? parseInt(seedVal) : null;
 
         return {
+            appVersion: currentAppVersion,
             dataSource: fd.get("dataSource") || "random",
             n: parseInt(fd.get("n")) || 1000,
             k: parseInt(fd.get("k")) || 2,

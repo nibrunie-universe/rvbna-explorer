@@ -28,7 +28,7 @@ MAX_REQUESTS_PER_MINUTE = 10
 # Maximum number of schemes the user is allowed to request at once
 MAX_SCHEME_NUM = 10
 # Current version of the application advertised on the user interface
-VERSION = "0.0.8"
+VERSION = "0.0.9"
 
 limiter = Limiter(
     get_remote_address,
