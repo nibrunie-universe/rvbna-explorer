@@ -4,7 +4,8 @@ from rvbna_web import (
     exactDotProd,
     correctlyRoundedDotProd,
     approxMultDotProd,
-    approxMultAccDotProd,
+    approxMultBinTreeAccDotProd,
+    approxMultLinearAccDotProd,
     fmaDotProd,
     bulkNormDotProd,
     generate_vectors,
@@ -129,7 +130,18 @@ def evaluate():
             mult_prec_name = scheme.get("multPrec", "fp16")
             add_prec_name = scheme.get("addPrec", "fp16")
             res_prec_name = scheme.get("resPrec", "fp32")
-            res = evaluate_errors(vectors, approxMultAccDotProd, {
+            res = evaluate_errors(vectors, approxMultBinTreeAccDotProd, {
+                "multPrec": FORMAT_MAP.get(mult_prec_name, halfprecisionformat),
+                "addPrec": FORMAT_MAP.get(add_prec_name, halfprecisionformat),
+                "resPrec": FORMAT_MAP.get(res_prec_name, singleformat),
+            }, golden_values)
+            results[name] = res
+
+        elif variant == "approx_mult_linear_acc":
+            mult_prec_name = scheme.get("multPrec", "fp16")
+            add_prec_name = scheme.get("addPrec", "fp16")
+            res_prec_name = scheme.get("resPrec", "fp32")
+            res = evaluate_errors(vectors, approxMultLinearAccDotProd, {
                 "multPrec": FORMAT_MAP.get(mult_prec_name, halfprecisionformat),
                 "addPrec": FORMAT_MAP.get(add_prec_name, halfprecisionformat),
                 "resPrec": FORMAT_MAP.get(res_prec_name, singleformat),

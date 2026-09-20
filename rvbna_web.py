@@ -37,7 +37,7 @@ def approxMultDotProd(a, b, multPrec=halfprecisionformat, resPrec=singleformat):
     # The sum has no intermediate rounding, the final result is rounded to the target resPrec format
     return round_sol(sum(prods, SollyaObject(0)), resPrec, RN)
 
-def approxMultAccDotProd(a, b, multPrec=halfprecisionformat, addPrec=halfprecisionformat, resPrec=singleformat):
+def approxMultBinTreeAccDotProd(a, b, multPrec=halfprecisionformat, addPrec=halfprecisionformat, resPrec=singleformat):
     """Dot product with rounded products and a binary-tree of rounded additions."""
     prods = [round_sol(ai * bi, multPrec, RN) for (ai, bi) in zip(a, b)]
     def binAddTree(v):
@@ -48,6 +48,14 @@ def approxMultAccDotProd(a, b, multPrec=halfprecisionformat, addPrec=halfprecisi
         addRes = [round_sol(ai + bi, addPrec, RN) for (ai, bi) in zip(evenOps, oddOps)] + ([v[-1]] if len(v) % 2 == 1 else [])
         return binAddTree(addRes)
     result = binAddTree(prods)[0]
+    return round_sol(result, resPrec, RN)
+
+def approxMultLinearAccDotProd(a, b, multPrec=halfprecisionformat, addPrec=halfprecisionformat, resPrec=singleformat):
+    """Dot product with rounded products and a linear comb of rounded additions."""
+    prods = [round_sol(ai * bi, multPrec, RN) for (ai, bi) in zip(a, b)]
+    result = SollyaObject(0)
+    for p in prods:
+        result = round_sol(result + p, addPrec, RN)
     return round_sol(result, resPrec, RN)
 
 def fmaDotProd(a, b, prec=singleformat, resPrec=singleformat):

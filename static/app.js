@@ -119,6 +119,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 { key: "resPrec", label: "Result Prec", type: "select", options: ["fp32", "fp64"], default: "fp32" },
             ],
         },
+        approx_mult_linear_acc: {
+            label: "FP MUL + Linear FP Add",
+            desc: "Products rounded, then accumulated sequentially (linear chain) with rounded additions.",
+            params: [
+                { key: "multPrec", label: "Mult Prec", type: "select", options: ["bf16", "fp16", "fp32", "fp64"], default: "fp16" },
+                { key: "addPrec", label: "Add Prec", type: "select", options: ["bf16", "fp16", "fp32", "fp64"], default: "fp16" },
+                { key: "resPrec", label: "Result Prec", type: "select", options: ["fp32", "fp64"], default: "fp32" },
+            ],
+        },
         fma: {
             label: "Sequence of FMA",
             desc: "Fused multiply-add: one rounding per step (res = round(res + a×b)).",
@@ -691,6 +700,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 return `FP MUL [${(params.multPrec || "fp16").toUpperCase()}] + Exact Acc`;
             case "approx_mult_acc":
                 return `FP MUL [${(params.multPrec || "fp16").toUpperCase()}] + Add Tree [${(params.addPrec || "fp16").toUpperCase()}]`;
+            case "approx_mult_linear_acc":
+                return `FP MUL [${(params.multPrec || "fp16").toUpperCase()}] + Linear Add [${(params.addPrec || "fp16").toUpperCase()}]`;
             case "fma":
                 return `FMA [${(params.fmaPrec || "fp32").toUpperCase()}]`;
             case "bulk_norm":
