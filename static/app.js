@@ -50,6 +50,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let lastEvalData = null;
     let lastEvalN = 0;
+    let lastMinLog2 = -23;
+    let lastExactY = -1;
 
 
     const groupK = document.getElementById("group-k");
@@ -391,17 +393,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // --- Part 2: Per-sample sorted relative errors (offset log2 scale) ---
         // Linear mapping: 0 = exact, 1 = min error (most negative log2), 10 = max error (largest log2)
-        let minLog2 = Infinity;
         let maxLog2 = -Infinity;
         for (const [, r] of entries) {
             for (const v of r.sorted_rel_errors) {
                 if (v > 0) {
                     const l = Math.log2(v);
-                    if (l < minLog2) minLog2 = l;
                     if (l > maxLog2) maxLog2 = l;
                 }
             }
         }
+        const minLog2 = lastMinLog2;
         const log2Range = maxLog2 - minLog2;
 
         csv += "\nSorted Relative Errors (offset log2: 0=exact, 1=min error, 10=max error)\n";
@@ -415,7 +416,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     const v = r.sorted_rel_errors[i];
                     let scaled;
                     if (v === 0) {
-                        scaled = -1;
+                        scaled = lastExactY;
                     } else if (log2Range === 0) {
                         scaled = 0; // all non-zero errors are the same
                     } else {
@@ -451,15 +452,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const schemeNames = entries.map(([name]) => name);
 
         // Find global min log2 for bias (same as error CSV)
-        let minLog2 = Infinity;
-        for (const [, r] of entries) {
-            for (const v of r.sorted_rel_errors) {
-                if (v > 0) {
-                    const l = Math.log2(v);
-                    if (l < minLog2) minLog2 = l;
-                }
-            }
-        }
+        // Use global precision-based minLog2
+        const minLog2 = lastMinLog2;
 
         // For each scheme, compute biased log2 values and build CDF
         // Collect all unique biased log2 values across schemes for a shared x-axis
@@ -470,7 +464,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const biased = [];
             for (const v of r.sorted_rel_errors) {
                 if (v === 0) {
-                    biased.push(-1);
+                    biased.push(lastExactY);
                 } else {
                     biased.push(Math.log2(v) - minLog2);
                 }
@@ -779,6 +773,29 @@ document.addEventListener("DOMContentLoaded", () => {
         const n = payload.n;
         lastEvalData = data;
         lastEvalN = n;
+        
+        const crScheme = payload.schemes.find(s => s.variant === "correctly_rounded");
+        const crPrec = crScheme ? crScheme.resPrec : "fp32";
+        const precBits = {
+            "bf16": 7,
+            "fp16": 10,
+            "fp32": 23,
+            "fp64": 52
+        };
+        const p = precBits[crPrec] || 23;
+        lastMinLog2 = -p;
+        
+        let minActualLog2 = Infinity;
+        for (const [, r] of Object.entries(data)) {
+            for (const v of r.sorted_rel_errors) {
+                if (v > 0) {
+                    const l = Math.log2(v);
+                    if (l < minActualLog2) minActualLog2 = l;
+                }
+            }
+        }
+        lastExactY = minActualLog2 !== Infinity ? Math.floor((minActualLog2 - lastMinLog2) - 1) : -1;
+
         biasedLog2Panel.style.display = "";
         const signedBiasedLog2Panel = document.getElementById("signed-biased-log2-panel");
         if (signedBiasedLog2Panel) signedBiasedLog2Panel.style.display = "";
@@ -873,22 +890,15 @@ document.addEventListener("DOMContentLoaded", () => {
         Plotly.react(chartDiv, traces, layout, PLOTLY_CONFIG);
 
         // ── Biased Log₂ Error chart ──────────────────────────────
-        // Same transformation as the CSV: log2(error) - minLog2, with -1 for exact
-        let minLog2 = Infinity;
-        for (const [, results] of entries) {
-            for (const v of results.sorted_rel_errors) {
-                if (v > 0) {
-                    const l = Math.log2(v);
-                    if (l < minLog2) minLog2 = l;
-                }
-            }
-        }
+        // Same transformation as the CSV: log2(error) - minLog2, with lastExactY for exact
+        const minLog2 = lastMinLog2;
+        const exactY = lastExactY;
 
         const biasedTraces = [];
         entries.forEach(([schemeName, results], idx) => {
             const color = SCHEME_COLORS[idx % SCHEME_COLORS.length];
             const yBiased = results.sorted_rel_errors.map(v =>
-                v === 0 ? -1 : Math.log2(v) - minLog2
+                v === 0 ? exactY : Math.log2(v) - minLog2
             );
             const xData = Array.from({ length: yBiased.length }, (_, i) => i);
             biasedTraces.push({
