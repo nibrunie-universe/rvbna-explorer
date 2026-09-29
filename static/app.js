@@ -548,14 +548,24 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    function restoreStateFromHash() {
+    async function restoreStateFromHash() {
         const hash = window.location.hash;
-        if (!hash.startsWith("#state=")) return false;
+        if (!hash) return false;
         
+        let state = null;
         try {
-            const b64 = hash.substring(7);
-            const json = decodeURIComponent(atob(b64));
-            const state = JSON.parse(json);
+            if (hash.startsWith("#state=")) {
+                const b64 = hash.substring(7);
+                const json = decodeURIComponent(atob(b64));
+                state = JSON.parse(json);
+            } else if (hash.startsWith("#exp=")) {
+                const handle = hash.substring(5);
+                const resp = await fetch(`/api/experiment/${handle}`);
+                if (!resp.ok) throw new Error(`Server returned ${resp.status}`);
+                state = await resp.json();
+            } else {
+                return false;
+            }
 
             // adding console logging of state
             console.log("Restoring state from hash:", state);
@@ -614,16 +624,18 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ── Create default scheme cards on page load ─────────────────
-    if (restoreStateFromHash()) {
-        // Automatically evaluate if state was restored from URL
-        setTimeout(() => evaluateBtn.click(), 50);
-    } else {
-        addSchemeCard("correctly_rounded");
-        addSchemeCard("approx_mult");
-        addSchemeCard("approx_mult_acc");
-        addSchemeCard("fma");
-        addSchemeCard("bulk_norm");
-    }
+    restoreStateFromHash().then(restored => {
+        if (restored) {
+            // Automatically evaluate if state was restored from URL
+            setTimeout(() => evaluateBtn.click(), 50);
+        } else {
+            addSchemeCard("correctly_rounded");
+            addSchemeCard("approx_mult");
+            addSchemeCard("approx_mult_acc");
+            addSchemeCard("fma");
+            addSchemeCard("bulk_norm");
+        }
+    });
 
     // ═══════════════════════════════════════════════════════════════
     //  Build request payload

@@ -39,9 +39,251 @@ limiter = Limiter(
 )
 
 
+EXPERIMENTS = {
+    "demo": {
+        "n": 1000,
+        "k": 128,
+        "inputPrec": "bf16",
+        "aDistribution": "gaussian",
+        "aAverage": 0,
+        "aSigma": 5,
+        "bDistribution": "gaussian",
+        "bAverage": 0,
+        "bSigma": 5,
+        "schemes": [
+            {"id": "s1", "variant": "correctly_rounded", "resPrec": "fp32", "name": "Exact [FP32]"},
+            {"id": "s2", "variant": "approx_mult", "multPrec": "bf16", "resPrec": "fp32", "name": "FP MUL [BF16] + FP Add [FP32]"},
+            {"id": "s3", "variant": "approx_mult_acc", "multPrec": "bf16", "addPrec": "bf16", "resPrec": "fp32", "name": "FP MUL [BF16] + Add Tree [BF16]"}
+        ]
+    },
+    "exp_4d": {
+        "appVersion": "0.0.9",
+        "dataSource": "random",
+        "n": 10000,
+        "k": 4,
+        "average": 0,
+        "sigma": 5,
+        "inputPrec": "bf16",
+        "aDistribution": "gaussian",
+        "aAverage": 0,
+        "aSigma": 5,
+        "bDistribution": "gaussian",
+        "bAverage": 0,
+        "bSigma": 5,
+        "seed": 1306,
+        "schemes": [
+            {
+                "variant": "correctly_rounded",
+                "resPrec": "fp32",
+                "customName": "A. Correcty Rounded",
+                "name": "A. Correcty Rounded"
+            },
+            {
+                "variant": "fma",
+                "fmaPrec": "fp32",
+                "resPrec": "fp32",
+                "customName": "B. Sequence of FMAs",
+                "name": "B. Sequence of FMAs"
+            },
+            {
+                "variant": "approx_mult",
+                "multPrec": "bf16",
+                "resPrec": "fp32",
+                "customName": "C. FP Mul + Exact Acc",
+                "name": "C. FP Mul + Exact Acc"
+            },
+            {
+                "variant": "approx_mult_acc",
+                "multPrec": "bf16",
+                "addPrec": "bf16",
+                "resPrec": "fp32",
+                "customName": "D. FP Mul + FP Add tree (small precision)",
+                "name": "D. FP Mul + FP Add tree (small precision)"
+            },
+            {
+                "variant": "approx_mult_acc",
+                "multPrec": "fp32",
+                "addPrec": "fp32",
+                "resPrec": "fp32",
+                "customName": "E. FP Mul + FP Add tree (large precision):",
+                "name": "E. FP Mul + FP Add tree (large precision):"
+            },
+            {
+                "variant": "bulk_norm",
+                "bulkNormPrec": "25",
+                "finalPrec": "23",
+                "customName": "F. Bulk Normalization",
+                "name": "F. Bulk Normalization"
+            }
+        ]
+    },
+    "exp_4d_zoom": {
+        "appVersion": "0.0.9",
+        "dataSource": "random",
+        "n": 10000,
+        "k": 4,
+        "average": 0,
+        "sigma": 5,
+        "inputPrec": "bf16",
+        "aDistribution": "gaussian",
+        "aAverage": 0,
+        "aSigma": 5,
+        "bDistribution": "gaussian",
+        "bAverage": 0,
+        "bSigma": 5,
+        "seed": 1306,
+        "schemes": [
+            {
+                "variant": "correctly_rounded",
+                "resPrec": "fp32",
+                "customName": "A. Correcty Rounded",
+                "name": "A. Correcty Rounded"
+            },
+            {
+                "variant": "fma",
+                "fmaPrec": "fp32",
+                "resPrec": "fp32",
+                "customName": "B. Sequence of FMAs",
+                "name": "B. Sequence of FMAs"
+            },
+            {
+                "variant": "approx_mult_acc",
+                "multPrec": "fp32",
+                "addPrec": "fp32",
+                "resPrec": "fp32",
+                "customName": "E. FP Mul + FP Add tree (large precision):",
+                "name": "E. FP Mul + FP Add tree (large precision):"
+            },
+            {
+                "variant": "bulk_norm",
+                "bulkNormPrec": "25",
+                "finalPrec": "23",
+                "customName": "F. Bulk Normalization",
+                "name": "F. Bulk Normalization"
+            }
+        ]
+    },
+    "exp_64d": {
+        "appVersion": "0.0.9",
+        "dataSource": "random",
+        "n": 10000,
+        "k": 64,
+        "average": 0,
+        "sigma": 5,
+        "inputPrec": "bf16",
+        "aDistribution": "gaussian",
+        "aAverage": 0,
+        "aSigma": 5,
+        "bDistribution": "gaussian",
+        "bAverage": 0,
+        "bSigma": 5,
+        "seed": 1306,
+        "schemes": [
+            {
+                "variant": "correctly_rounded",
+                "resPrec": "fp32",
+                "customName": "A. Correcty Rounded",
+                "name": "A. Correcty Rounded"
+            },
+            {
+                "variant": "fma",
+                "fmaPrec": "fp32",
+                "resPrec": "fp32",
+                "customName": "B. Sequence of FMAs",
+                "name": "B. Sequence of FMAs"
+            },
+            {
+                "variant": "approx_mult",
+                "multPrec": "bf16",
+                "resPrec": "fp32",
+                "customName": "C. FP Mul + Exact Ac",
+                "name": "C. FP Mul + Exact Ac"
+            },
+            {
+                "variant": "approx_mult_acc",
+                "multPrec": "bf16",
+                "addPrec": "bf16",
+                "resPrec": "fp32",
+                "customName": "D. FP Mul + FP Add tree (small precision)",
+                "name": "D. FP Mul + FP Add tree (small precision)"
+            },
+            {
+                "variant": "approx_mult_acc",
+                "multPrec": "fp32",
+                "addPrec": "fp32",
+                "resPrec": "fp32",
+                "customName": "E. FP Mul + FP Add tree (large precision):",
+                "name": "E. FP Mul + FP Add tree (large precision):"
+            },
+            {
+                "variant": "bulk_norm",
+                "bulkNormPrec": "25",
+                "finalPrec": "23",
+                "customName": "F. Bulk Normalization",
+                "name": "F. Bulk Normalization"
+            }
+        ]
+    },
+    "exp_64d_zoom": {
+        "appVersion": "0.0.9",
+        "dataSource": "random",
+        "n": 10000,
+        "k": 64,
+        "average": 5,
+        "sigma": 5,
+        "inputPrec": "bf16",
+        "aDistribution": "gaussian",
+        "aAverage": 0,
+        "aSigma": 5,
+        "bDistribution": "gaussian",
+        "bAverage": 0,
+        "bSigma": 5,
+        "seed": 1306,
+        "schemes": [
+            {
+                "variant": "correctly_rounded",
+                "resPrec": "fp32",
+                "customName": "A. Correcty Rounded",
+                "name": "A. Correcty Rounded"
+            },
+            {
+                "variant": "fma",
+                "fmaPrec": "fp32",
+                "resPrec": "fp32",
+                "customName": "B. Sequence of FMAs",
+                "name": "B. Sequence of FMAs"
+            },
+            {
+                "variant": "approx_mult_acc",
+                "multPrec": "fp32",
+                "addPrec": "fp32",
+                "resPrec": "fp32",
+                "customName": "E. FP Mul + FP Add tree (large precision):",
+                "name": "E. FP Mul + FP Add tree (large precision):"
+            },
+            {
+                "variant": "bulk_norm",
+                "bulkNormPrec": "25",
+                "finalPrec": "23",
+                "customName": "F. Bulk Normalization",
+                "name": "F. Bulk Normalization"
+            }
+        ]
+    },
+}
+
 @app.route("/")
 def index():
     return send_from_directory("static", "index.html")
+
+@app.route("/api/experiment/<handle>")
+def get_experiment(handle):
+    print(f"Trying to localte handle {handle}")
+    if handle in EXPERIMENTS:
+        print("handle found!")
+        return jsonify(EXPERIMENTS[handle])
+    print("handle not found!")
+    return jsonify({"error": "Experiment not found"}), 404
 
 @app.route("/api/version")
 def get_version():
