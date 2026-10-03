@@ -31,7 +31,8 @@ MAX_SCHEME_NUM = 10
 # Current version of the application advertised on the user interface
 # Changelog(s):
 # 0.1.2: adding short-handle for demo links (fprox's blog post)
-VERSION = "0.1.2"
+# 0.1.3: adding zoom capabilities (start,end range on x-axis) for plots
+VERSION = "0.1.3"
 
 limiter = Limiter(
     get_remote_address,
