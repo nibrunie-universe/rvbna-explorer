@@ -29,7 +29,9 @@ MAX_REQUESTS_PER_MINUTE = 10
 # Maximum number of schemes the user is allowed to request at once
 MAX_SCHEME_NUM = 10
 # Current version of the application advertised on the user interface
-VERSION = "0.1.1"
+# Changelog(s):
+# 0.1.2: adding short-handle for demo links (fprox's blog post)
+VERSION = "0.1.2"
 
 limiter = Limiter(
     get_remote_address,
