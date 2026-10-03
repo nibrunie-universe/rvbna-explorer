@@ -236,10 +236,10 @@ EXPERIMENTS = {
         "sigma": 5,
         "inputPrec": "bf16",
         "aDistribution": "gaussian",
-        "aAverage": 0,
+        "aAverage": 5,
         "aSigma": 5,
         "bDistribution": "gaussian",
-        "bAverage": 0,
+        "bAverage": 5,
         "bSigma": 5,
         "seed": 1306,
         "schemes": [
