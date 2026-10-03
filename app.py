@@ -134,6 +134,7 @@ EXPERIMENTS = {
         "bAverage": 0,
         "bSigma": 5,
         "seed": 1306,
+        "start": 9700,
         "schemes": [
             {
                 "variant": "correctly_rounded",

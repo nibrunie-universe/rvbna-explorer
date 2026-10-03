@@ -585,6 +585,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 const seedInput = document.getElementById("cfg-seed");
                 if (seedInput) seedInput.value = state.seed;
             }
+            if (state.start !== undefined && state.start !== null) {
+                const startInput = document.getElementById("cfg-plot-start");
+                if (startInput) startInput.value = state.start;
+            }
+            if (state.end !== undefined && state.end !== null) {
+                const endInput = document.getElementById("cfg-plot-end");
+                if (endInput) endInput.value = state.end;
+            }
 
             // Restore per-vector distribution params
             if (state.aDistribution) {
@@ -677,9 +685,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const seedVal = fd.get("seed");
         const parsedSeed = seedVal ? parseInt(seedVal) : null;
+        
+        const plotStartVal = fd.get("plotStart");
+        const plotStart = plotStartVal ? parseInt(plotStartVal) : null;
+        const plotEndVal = fd.get("plotEnd");
+        const plotEnd = plotEndVal ? parseInt(plotEndVal) : null;
 
         return {
             appVersion: currentAppVersion,
+            start: isNaN(plotStart) ? null : plotStart,
+            end: isNaN(plotEnd) ? null : plotEnd,
             dataSource: fd.get("dataSource") || "random",
             n: parseInt(fd.get("n")) || 1000,
             k: parseInt(fd.get("k")) || 2,
@@ -783,6 +798,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function renderResults(data, payload) {
         const n = payload.n;
+        const pStart = payload.start != null ? payload.start : 0;
+        const pEnd = payload.end != null ? payload.end : n;
+        
         lastEvalData = data;
         lastEvalN = n;
         
@@ -836,8 +854,8 @@ document.addEventListener("DOMContentLoaded", () => {
             const color = SCHEME_COLORS[idx % SCHEME_COLORS.length];
 
             // Plotly trace
-            const yData = results.sorted_rel_errors.map((v) => (v === 0 ? null : v));
-            const xData = Array.from({ length: yData.length }, (_, i) => i);
+            const yData = results.sorted_rel_errors.map((v) => (v === 0 ? null : v)).slice(pStart, pEnd);
+            const xData = Array.from({ length: yData.length }, (_, i) => i + pStart);
 
             traces.push({
                 x: xData,
@@ -945,12 +963,13 @@ document.addEventListener("DOMContentLoaded", () => {
         const signedBiasedTraces = [];
         entries.forEach(([schemeName, results], idx) => {
             const color = SCHEME_COLORS[idx % SCHEME_COLORS.length];
-            const ySignedBiased = results.sorted_signed_rel_errors.map(v => {
+            let ySignedBiasedRaw = results.sorted_signed_rel_errors.slice(pStart, pEnd);
+            const ySignedBiased = ySignedBiasedRaw.map(v => {
                 if (v === 0) return 0;
                 const mag = Math.log2(Math.abs(v)) - minLog2;
                 return v > 0 ? mag : -mag;
             });
-            const xData = Array.from({ length: ySignedBiased.length }, (_, i) => i);
+            const xData = Array.from({ length: ySignedBiased.length }, (_, i) => i + pStart);
             signedBiasedTraces.push({
                 x: xData,
                 y: ySignedBiased,
@@ -986,8 +1005,9 @@ document.addEventListener("DOMContentLoaded", () => {
         entries.forEach(([schemeName, results], idx) => {
             const color = SCHEME_COLORS[idx % SCHEME_COLORS.length];
             
-            const posErrors = results.sorted_signed_rel_errors.filter(v => v > 0);
-            const negErrors = results.sorted_signed_rel_errors.filter(v => v < 0);
+            let ySignedBiasedRaw = results.sorted_signed_rel_errors.slice(pStart, pEnd);
+            const posErrors = ySignedBiasedRaw.filter(v => v > 0);
+            const negErrors = ySignedBiasedRaw.filter(v => v < 0);
             
             const yPos = posErrors.map(v => Math.log2(v) - minLog2).sort((a, b) => a - b);
             const xPos = Array.from({ length: yPos.length }, (_, i) => i);
@@ -1091,7 +1111,8 @@ document.addEventListener("DOMContentLoaded", () => {
         // Find global max biased log2 so all curves extend to the same right edge
         let maxBiased = -Infinity;
         for (const [, results] of entries) {
-            for (const v of results.sorted_rel_errors) {
+            const subset = results.sorted_rel_errors.slice(pStart, pEnd);
+            for (const v of subset) {
                 if (v > 0) {
                     const b = Math.log2(v) - minLog2;
                     if (b > maxBiased) maxBiased = b;
@@ -1102,8 +1123,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const cdfTraces = [];
         entries.forEach(([schemeName, results], idx) => {
             const color = SCHEME_COLORS[idx % SCHEME_COLORS.length];
+            
+            let yBiasedRaw = results.sorted_rel_errors.slice(pStart, pEnd);
+
             // Compute biased log2 values, sorted
-            const biased = results.sorted_rel_errors.map(v =>
+            const biased = yBiasedRaw.map(v =>
                 v === 0 ? -1 : Math.log2(v) - minLog2
             ).sort((a, b) => a - b);
 
