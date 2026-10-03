@@ -927,10 +927,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const biasedTraces = [];
         entries.forEach(([schemeName, results], idx) => {
             const color = SCHEME_COLORS[idx % SCHEME_COLORS.length];
-            const yBiased = results.sorted_rel_errors.map(v =>
+            let yBiasedRaw = results.sorted_rel_errors.slice(pStart, pEnd);
+            const yBiased = yBiasedRaw.map(v =>
                 v === 0 ? exactY : Math.log2(v) - minLog2
             );
-            const xData = Array.from({ length: yBiased.length }, (_, i) => i);
+            const xData = Array.from({ length: yBiased.length }, (_, i) => i + pStart);
             biasedTraces.push({
                 x: xData,
                 y: yBiased,
