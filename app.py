@@ -36,6 +36,7 @@ MAX_SCHEME_NUM = 10
 # 0.1.4: restricting number of samples for 64-element experiments (limit compute time)
 # 0.1.5: fixing number of guard bits for 64-element RVBNA variants
 # 0.1.6: Adding the capability to sort metric columns in the Error Statistics table
+# 0.1.7: Correcting plotting of exact value in CDF error plot.
 VERSION = "0.1.5"
 
 limiter = Limiter(

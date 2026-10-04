@@ -1175,7 +1175,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Compute biased log2 values, sorted
             const biased = yBiasedRaw.map(v =>
-                v === 0 ? -1 : Math.log2(v) - minLog2
+                v === 0 ? minActualLog2 - minLog2 : Math.log2(v) - minLog2
             ).sort((a, b) => a - b);
 
             const total = biased.length;
