@@ -793,6 +793,50 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // ═══════════════════════════════════════════════════════════════
+    //  Table Sorting
+    // ═══════════════════════════════════════════════════════════════
+    let currentSortColIndex = -1;
+    let currentSortAsc = true;
+
+    function applyTableSort() {
+        if (currentSortColIndex < 0) return;
+        const rows = Array.from(statsBody.querySelectorAll("tr"));
+        if (rows.length === 0 || rows[0].querySelector(".empty-state")) return;
+
+        const multiplier = currentSortAsc ? 1 : -1;
+        rows.sort((a, b) => {
+            const aValStr = a.children[currentSortColIndex].getAttribute("data-value");
+            const bValStr = b.children[currentSortColIndex].getAttribute("data-value");
+            
+            const aNum = parseFloat(aValStr);
+            const bNum = parseFloat(bValStr);
+
+            if (!isNaN(aNum) && !isNaN(bNum)) {
+                return (aNum - bNum) * multiplier;
+            }
+            return aValStr.localeCompare(bValStr) * multiplier;
+        });
+
+        rows.forEach(row => statsBody.appendChild(row));
+    }
+
+    document.querySelectorAll("#stats-table th.sortable").forEach((th, idx) => {
+        th.addEventListener("click", () => {
+            if (currentSortColIndex === idx) {
+                currentSortAsc = !currentSortAsc;
+            } else {
+                currentSortColIndex = idx;
+                currentSortAsc = true;
+            }
+            
+            document.querySelectorAll("#stats-table th.sortable").forEach(h => h.classList.remove("sort-asc", "sort-desc"));
+            th.classList.add(currentSortAsc ? "sort-asc" : "sort-desc");
+            
+            applyTableSort();
+        });
+    });
+
+    // ═══════════════════════════════════════════════════════════════
     //  Render results
     // ═══════════════════════════════════════════════════════════════
 
@@ -870,28 +914,30 @@ document.addEventListener("DOMContentLoaded", () => {
             // Stats table row
             const tr = document.createElement("tr");
             tr.innerHTML = `
-                <td>
+                <td data-value="${schemeName.toLowerCase()}">
                     <span class="scheme-label">
                         <span class="color-dot" style="background:${color}"></span>
                         ${schemeName}
                     </span>
                 </td>
-                <td>${fmtSci(results.min)}</td>
-                <td>${fmtSci(results.max)}</td>
-                <td>${fmtSci(results.geometric_mean)}</td>
-                <td>${(results.exact_count / n * 100).toFixed(1)}% (${results.exact_count})</td>
-                <td>${fmtSci(results.mean_signed_rel_error)}</td>
-                <td>${fmtSci(results.mean_signed_error)}</td>
-                <td>${fmtSci(results.sum_signed_rel_error)}</td>
-                <td>${fmtSci(results.sum_signed_error)}</td>
-                <td>${results.pos_count}</td>
-                <td>${results.neg_count}</td>
-                <td>${results.exact_pos_count}</td>
-                <td>${results.exact_neg_count}</td>
-                <td>${results.opposite_sign_count}</td>
+                <td data-value="${results.min}">${fmtSci(results.min)}</td>
+                <td data-value="${results.max}">${fmtSci(results.max)}</td>
+                <td data-value="${results.geometric_mean}">${fmtSci(results.geometric_mean)}</td>
+                <td data-value="${results.exact_count}">${(results.exact_count / n * 100).toFixed(1)}% (${results.exact_count})</td>
+                <td data-value="${results.mean_signed_rel_error}">${fmtSci(results.mean_signed_rel_error)}</td>
+                <td data-value="${results.mean_signed_error}">${fmtSci(results.mean_signed_error)}</td>
+                <td data-value="${results.sum_signed_rel_error}">${fmtSci(results.sum_signed_rel_error)}</td>
+                <td data-value="${results.sum_signed_error}">${fmtSci(results.sum_signed_error)}</td>
+                <td data-value="${results.pos_count}">${results.pos_count}</td>
+                <td data-value="${results.neg_count}">${results.neg_count}</td>
+                <td data-value="${results.exact_pos_count}">${results.exact_pos_count}</td>
+                <td data-value="${results.exact_neg_count}">${results.exact_neg_count}</td>
+                <td data-value="${results.opposite_sign_count}">${results.opposite_sign_count}</td>
             `;
             statsBody.appendChild(tr);
         });
+
+        applyTableSort();
 
         if (dataStatsBody && entries.length > 0) {
             const firstRes = entries[0][1];

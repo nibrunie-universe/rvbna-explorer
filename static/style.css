@@ -814,6 +814,32 @@ thead th {
     position: sticky;
     top: 0;
     background: var(--surface-0);
+    user-select: none;
+    transition: color 0.15s ease;
+}
+
+thead th.sortable:hover {
+    color: var(--text-primary);
+    cursor: pointer;
+}
+
+thead th.sortable::after {
+    content: " \2195"; /* Up/Down arrow */
+    opacity: 0.3;
+    font-size: 0.8em;
+    margin-left: 4px;
+}
+
+thead th.sort-asc::after {
+    content: " \2191"; /* Up arrow */
+    opacity: 1;
+    color: var(--primary-color);
+}
+
+thead th.sort-desc::after {
+    content: " \2193"; /* Down arrow */
+    opacity: 1;
+    color: var(--primary-color);
 }
 
 tbody td {
