@@ -18,6 +18,7 @@ from rvbna_web import (
 import os
 
 MAX_N = int(os.environ.get("MAX_N", 50000))
+DEBUG = int(os.environ.get("DEBUG", 0))
 
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -419,4 +420,7 @@ def evaluate():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5001)
+    print("Application configuration:")
+    print(f"  MAX_N is {MAX_N}")
+    print(f"  DEBUG is {DEBUG}")
+    app.run(debug=DEBUG, port=5001)
