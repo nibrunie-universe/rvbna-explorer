@@ -33,7 +33,8 @@ MAX_SCHEME_NUM = 10
 # Changelog(s):
 # 0.1.2: adding short-handle for demo links (fprox's blog post)
 # 0.1.3: adding zoom capabilities (start,end range on x-axis) for plots
-VERSION = "0.1.3"
+# 0.1.4: restricting number of samples for 64-element experiments (limit compute time)
+VERSION = "0.1.4"
 
 limiter = Limiter(
     get_remote_address,
@@ -171,7 +172,7 @@ EXPERIMENTS = {
     "exp_64d": {
         "appVersion": "0.0.9",
         "dataSource": "random",
-        "n": 10000,
+        "n": 2500,
         "k": 64,
         "average": 0,
         "sigma": 5,
@@ -232,7 +233,7 @@ EXPERIMENTS = {
     "exp_64d_zoom": {
         "appVersion": "0.0.9",
         "dataSource": "random",
-        "n": 10000,
+        "n": 2500,
         "k": 64,
         "average": 5,
         "sigma": 5,
