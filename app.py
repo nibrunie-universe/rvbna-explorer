@@ -34,7 +34,8 @@ MAX_SCHEME_NUM = 10
 # 0.1.2: adding short-handle for demo links (fprox's blog post)
 # 0.1.3: adding zoom capabilities (start,end range on x-axis) for plots
 # 0.1.4: restricting number of samples for 64-element experiments (limit compute time)
-VERSION = "0.1.4"
+# 0.1.5: fixing number of guard bits for 64-element RVBNA variants
+VERSION = "0.1.5"
 
 limiter = Limiter(
     get_remote_address,
@@ -223,7 +224,7 @@ EXPERIMENTS = {
             },
             {
                 "variant": "bulk_norm",
-                "bulkNormPrec": "25",
+                "bulkNormPrec": "29",
                 "finalPrec": "23",
                 "customName": "F. Bulk Normalization",
                 "name": "F. Bulk Normalization"
@@ -269,7 +270,7 @@ EXPERIMENTS = {
             },
             {
                 "variant": "bulk_norm",
-                "bulkNormPrec": "25",
+                "bulkNormPrec": "29",
                 "finalPrec": "23",
                 "customName": "F. Bulk Normalization",
                 "name": "F. Bulk Normalization"
