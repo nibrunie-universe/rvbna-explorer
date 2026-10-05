@@ -5,7 +5,7 @@ import json
 from rvbna_web import (
     correctlyRoundedDotProd,
     approxMultDotProd,
-    approxMultAccDotProd,
+    approxMultBinTreeAccDotProd,
     fmaDotProd,
     bulkNormDotProd,
     generate_vectors,
@@ -15,6 +15,16 @@ from rvbna_web import (
     halfprecisionformat,
     bfloat16format
 )
+
+def parse_format(s):
+    if s == "fp32":
+        return singleformat
+    elif s == "bf16":
+        return bfloat16format
+    elif s == "fp16":
+        return halfprecisionformat
+    else:
+        raise ValueError(f"Unknown format: {s}")
 
 def main():
     parser = argparse.ArgumentParser(description="Generate plot of signed absolute errors")
@@ -26,6 +36,7 @@ def main():
     parser.add_argument("--avg", type=float, default=0.0, help="Distribution average")
     parser.add_argument("--sigma", type=float, default=10.0, help="Distribution sigma")
     parser.add_argument("-o", "--output", type=str, default="signed_error_plot.png", help="Output plot filename")
+    parser.add_argument("--input-format", type=parse_format, default=bfloat16format, help="Input format")
     args = parser.parse_args()
 
     if args.variants:
@@ -55,16 +66,21 @@ def main():
     total_exact_neg = {s["name"]: 0 for s in schemes}
     total_opposite_sign = {s["name"]: 0 for s in schemes}
 
-    for n in ns:
-        print(f"Evaluating n={n}...")
-        vectors = generate_vectors(
-            n, k, avg, sigma,
-            input_prec=bfloat16format,
+    n_max = args.n_end
+
+    full_vectors = generate_vectors(
+            n_max, k, avg, sigma,
+            input_prec=args.input_format,
             a_average=avg, a_sigma=sigma,
             b_average=avg, b_sigma=sigma,
             a_distribution="gaussian", b_distribution="gaussian"
         )
-        golden_values = [correctlyRoundedDotProd(a, b) for (a, b) in vectors]
+    full_golden_values = [correctlyRoundedDotProd(a, b) for (a, b) in full_vectors]
+
+    for n in ns:
+        print(f"Evaluating n={n}...")
+        vectors = full_vectors[:n]
+        golden_values = full_golden_values[:n]
         
         for scheme in schemes:
             name = scheme.get("name")
@@ -78,7 +94,7 @@ def main():
                     "resPrec": FORMAT_MAP.get(scheme.get("resPrec"), singleformat),
                 }, golden_values)
             elif variant == "approx_mult_acc":
-                res = evaluate_errors(vectors, approxMultAccDotProd, {
+                res = evaluate_errors(vectors, approxMultBinTreeAccDotProd, {
                     "multPrec": FORMAT_MAP.get(scheme.get("multPrec"), bfloat16format),
                     "addPrec": FORMAT_MAP.get(scheme.get("addPrec"), bfloat16format),
                     "resPrec": FORMAT_MAP.get(scheme.get("resPrec"), singleformat),
@@ -124,7 +140,7 @@ def main():
         plt.plot(ns, data, marker='o', label=name)
     plt.xlabel("n (number of samples)")
     plt.ylabel("Sum of Signed Error")
-    plt.title(f"Sum of Signed Error vs N\n(k={k}, avg={avg}, sigma={sigma}, input=bf16)")
+    plt.title(f"Sum of Signed Error vs N\n(k={k}, avg={avg}, sigma={sigma}, input={args.input_format})")
     plt.legend()
     plt.grid(True)
     
@@ -134,7 +150,7 @@ def main():
         plt.plot(ns, data, marker='o', label=name)
     plt.xlabel("n (number of samples)")
     plt.ylabel("Average Signed Error")
-    plt.title(f"Average Signed Error vs N\n(k={k}, avg={avg}, sigma={sigma}, input=bf16)")
+    plt.title(f"Average Signed Error vs N\n(k={k}, avg={avg}, sigma={sigma}, input={args.input_format})")
     plt.legend()
     plt.grid(True)
 
