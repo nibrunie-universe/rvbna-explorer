@@ -157,38 +157,54 @@ def generate_vectors(n, k, average, sigma, input_prec=halfprecisionformat,
 
 def evaluate_errors(vectors, func, kwargs, golden_values):
     """Compute relative errors of func vs golden, return sorted errors + stats."""
-    abs_errors = []
-    rel_errors = []
-    signed_rel_errors = []
-    signed_errors = []
-    pos_a_count = 0
-    neg_a_count = 0
-    pos_b_count = 0
-    neg_b_count = 0
-    exact_pos_count = 0
-    exact_neg_count = 0
-    opposite_sign_count = 0
-    err_pos_res_pos = []
-    err_neg_res_pos = []
-    err_pos_res_neg = []
-    err_neg_res_neg = []
-    for ((a, b), golden) in zip(vectors, golden_values):
+    res_vector = [func(a, b, **kwargs) for a, b in vectors]
+    return evaluate_errors_vector(vectors, res_vector, golden_values)
+
+def evaluate_errors_vector(vectors, res_vector, golden_values, state=None):
+    """Compute relative errors of res_vector vs golden, return sorted errors + stats."""
+    if state is None:
+        state = {
+            "abs_errors": [],
+            "rel_errors": [],
+            "signed_rel_errors": [],
+            "signed_errors": [],
+            "pos_a_count": 0,
+            "neg_a_count": 0,
+            "pos_b_count": 0,
+            "neg_b_count": 0,
+            "exact_pos_count": 0,
+            "exact_neg_count": 0,
+            "opposite_sign_count": 0,
+            "err_pos_res_pos": [],
+            "err_neg_res_pos": [],
+            "err_pos_res_neg": [],
+            "err_neg_res_neg": []
+        }
+        
+    abs_errors = state["abs_errors"]
+    rel_errors = state["rel_errors"]
+    signed_rel_errors = state["signed_rel_errors"]
+    signed_errors = state["signed_errors"]
+    err_pos_res_pos = state["err_pos_res_pos"]
+    err_neg_res_pos = state["err_neg_res_pos"]
+    err_pos_res_neg = state["err_pos_res_neg"]
+    err_neg_res_neg = state["err_neg_res_neg"]
+
+    for ((a, b), res, golden) in zip(vectors, res_vector, golden_values):
         if golden > 0:
-            exact_pos_count += 1
+            state["exact_pos_count"] += 1
         elif golden < 0:
-            exact_neg_count += 1
+            state["exact_neg_count"] += 1
             
         for ai in a:
-            if ai > 0: pos_a_count += 1
-            elif ai < 0: neg_a_count += 1
+            if ai > 0: state["pos_a_count"] += 1
+            elif ai < 0: state["neg_a_count"] += 1
         for bi in b:
-            if bi > 0: pos_b_count += 1
-            elif bi < 0: neg_b_count += 1
-            
-        res = func(a, b, **kwargs)
+            if bi > 0: state["pos_b_count"] += 1
+            elif bi < 0: state["neg_b_count"] += 1
         
         if (res > 0 and golden < 0) or (res < 0 and golden > 0):
-            opposite_sign_count += 1
+            state["opposite_sign_count"] += 1
             
         err = res - golden
         abs_error = abs(err)
@@ -213,58 +229,39 @@ def evaluate_errors(vectors, func, kwargs, golden_values):
                 
         # Check if the result is NaN (Not a Number).
         if abs_error != abs_error or rel_error != rel_error:
-            print(f"NaN error detected, func={func.__name__}, a={a}, b={b}, golden={golden}, res={res}")
+            print(f"NaN error detected, a={a}, b={b}, golden={golden}, res={res}")
         abs_errors.append(float(abs_error))
         rel_errors.append(float(rel_error))
         signed_rel_errors.append(float(signed_rel_error))
         signed_errors.append(float(err))
 
-    sorted_rel_errors = sorted(rel_errors)
-    sorted_signed_rel_errors = sorted(signed_rel_errors)
-    max_err = max(rel_errors)
-    min_err = min(rel_errors)
+    state["sorted_rel_errors"] = sorted(rel_errors)
+    state["sorted_signed_rel_errors"] = sorted(signed_rel_errors)
+    state["max"] = max(rel_errors) if rel_errors else 0.0
+    state["min"] = min(rel_errors) if rel_errors else 0.0
 
     # Geometric mean excluding exact zeros and extreme sentinels
     non_zero = [e for e in rel_errors if e > 0 and e < 1e308]
     if non_zero:
-        geo_mean = math.exp(sum(math.log(e) for e in non_zero) / len(non_zero))
+        state["geometric_mean"] = math.exp(sum(math.log(e) for e in non_zero) / len(non_zero))
     else:
-        geo_mean = 0.0
+        state["geometric_mean"] = 0.0
 
-    exact_count = len(rel_errors) - len(non_zero)
+    state["exact_count"] = len(rel_errors) - len(non_zero)
     
-    mean_signed_error = sum(signed_errors) / len(signed_errors) if signed_errors else 0.0
+    state["mean_signed_error"] = sum(signed_errors) / len(signed_errors) if signed_errors else 0.0
     valid_signed_rel = [e for e in signed_rel_errors if abs(e) < 1e308]
-    mean_signed_rel_error = sum(valid_signed_rel) / len(valid_signed_rel) if valid_signed_rel else 0.0
+    state["mean_signed_rel_error"] = sum(valid_signed_rel) / len(valid_signed_rel) if valid_signed_rel else 0.0
 
-    sum_signed_error = sum(signed_errors)
-    sum_signed_rel_error = sum(valid_signed_rel)
+    state["sum_signed_error"] = sum(signed_errors)
+    state["sum_signed_rel_error"] = sum(valid_signed_rel)
     
-    pos_count = sum(1 for e in signed_errors if e > 0)
-    neg_count = sum(1 for e in signed_errors if e < 0)
+    state["pos_count"] = sum(1 for e in signed_errors if e > 0)
+    state["neg_count"] = sum(1 for e in signed_errors if e < 0)
 
-    return {
-        "sorted_rel_errors": sorted_rel_errors,
-        "sorted_signed_rel_errors": sorted_signed_rel_errors,
-        "max": max_err,
-        "min": min_err,
-        "geometric_mean": geo_mean,
-        "exact_count": exact_count,
-        "mean_signed_error": mean_signed_error,
-        "mean_signed_rel_error": mean_signed_rel_error,
-        "sum_signed_error": sum_signed_error,
-        "sum_signed_rel_error": sum_signed_rel_error,
-        "pos_count": pos_count,
-        "neg_count": neg_count,
-        "pos_a_count": pos_a_count,
-        "neg_a_count": neg_a_count,
-        "pos_b_count": pos_b_count,
-        "neg_b_count": neg_b_count,
-        "exact_pos_count": exact_pos_count,
-        "exact_neg_count": exact_neg_count,
-        "opposite_sign_count": opposite_sign_count,
-        "sorted_err_pos_res_pos": sorted(err_pos_res_pos),
-        "sorted_err_neg_res_pos": sorted(err_neg_res_pos),
-        "sorted_err_pos_res_neg": sorted(err_pos_res_neg),
-        "sorted_err_neg_res_neg": sorted(err_neg_res_neg),
-    }
+    state["sorted_err_pos_res_pos"] = sorted(err_pos_res_pos)
+    state["sorted_err_neg_res_pos"] = sorted(err_neg_res_pos)
+    state["sorted_err_pos_res_neg"] = sorted(err_pos_res_neg)
+    state["sorted_err_neg_res_neg"] = sorted(err_neg_res_neg)
+    
+    return state

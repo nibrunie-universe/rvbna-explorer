@@ -9,7 +9,7 @@ from rvbna_web import (
     fmaDotProd,
     bulkNormDotProd,
     generate_vectors,
-    evaluate_errors,
+    evaluate_errors_vector,
     FORMAT_MAP,
     singleformat,
     halfprecisionformat,
@@ -37,6 +37,7 @@ def main():
     parser.add_argument("--sigma", type=float, default=10.0, help="Distribution sigma")
     parser.add_argument("-o", "--output", type=str, default="signed_error_plot.png", help="Output plot filename")
     parser.add_argument("--input-format", type=parse_format, default=bfloat16format, help="Input format")
+    parser.add_argument("--seed", type=int, default=None, help="Random seed")
     args = parser.parse_args()
 
     if args.variants:
@@ -56,72 +57,73 @@ def main():
     results_sum = {s["name"]: [] for s in schemes}
     results_avg = {s["name"]: [] for s in schemes}
     
-    total_pos = {s["name"]: 0 for s in schemes}
-    total_neg = {s["name"]: 0 for s in schemes}
-    total_pos_a = {s["name"]: 0 for s in schemes}
-    total_neg_a = {s["name"]: 0 for s in schemes}
-    total_pos_b = {s["name"]: 0 for s in schemes}
-    total_neg_b = {s["name"]: 0 for s in schemes}
-    total_exact_pos = {s["name"]: 0 for s in schemes}
-    total_exact_neg = {s["name"]: 0 for s in schemes}
-    total_opposite_sign = {s["name"]: 0 for s in schemes}
+    states = {s["name"]: None for s in schemes}
+    last_n = 0
 
     n_max = args.n_end
 
+    print("Generating random input vectors ...")
     full_vectors = generate_vectors(
             n_max, k, avg, sigma,
             input_prec=args.input_format,
             a_average=avg, a_sigma=sigma,
             b_average=avg, b_sigma=sigma,
-            a_distribution="gaussian", b_distribution="gaussian"
+            a_distribution="gaussian", b_distribution="gaussian",
+            seed=args.seed
         )
+    print("Evaluating correctly rounded dot product...")
     full_golden_values = [correctlyRoundedDotProd(a, b) for (a, b) in full_vectors]
+
+    full_res_vectors = {}
+    print(f"{len(schemes)} scheme(s) found")
+    print("Pre-computing full result vectors for all variants...")
+    for scheme in schemes:
+        name = scheme.get("name")
+        variant = scheme.get("variant")
+        
+        if variant == "exact":
+            full_res_vectors[name] = full_golden_values
+        elif variant == "approx_mult":
+            kwargs = {
+                "multPrec": FORMAT_MAP.get(scheme.get("multPrec"), bfloat16format),
+                "resPrec": FORMAT_MAP.get(scheme.get("resPrec"), singleformat),
+            }
+            full_res_vectors[name] = [approxMultDotProd(a, b, **kwargs) for (a, b) in full_vectors]
+        elif variant == "approx_mult_acc":
+            kwargs = {
+                "multPrec": FORMAT_MAP.get(scheme.get("multPrec"), bfloat16format),
+                "addPrec": FORMAT_MAP.get(scheme.get("addPrec"), bfloat16format),
+                "resPrec": FORMAT_MAP.get(scheme.get("resPrec"), singleformat),
+            }
+            full_res_vectors[name] = [approxMultBinTreeAccDotProd(a, b, **kwargs) for (a, b) in full_vectors]
+        elif variant == "fma":
+            kwargs = {
+                "prec": FORMAT_MAP.get(scheme.get("fmaPrec"), singleformat),
+                "resPrec": FORMAT_MAP.get(scheme.get("resPrec"), singleformat),
+            }
+            full_res_vectors[name] = [fmaDotProd(a, b, **kwargs) for (a, b) in full_vectors]
+        elif variant == "bulk_norm":
+            kwargs = {
+                "bulkNormPrec": scheme.get("bulkNormPrec"),
+                "finalPrec": scheme.get("finalPrec"),
+            }
+            full_res_vectors[name] = [bulkNormDotProd(a, b, **kwargs) for (a, b) in full_vectors]
 
     for n in ns:
         print(f"Evaluating n={n}...")
-        vectors = full_vectors[:n]
-        golden_values = full_golden_values[:n]
+        vectors = full_vectors[last_n:n]
+        golden_values = full_golden_values[last_n:n]
         
         for scheme in schemes:
             name = scheme.get("name")
-            variant = scheme.get("variant")
+            res_vector = full_res_vectors[name][last_n:n]
             
-            if variant == "exact":
-                res = evaluate_errors(vectors, correctlyRoundedDotProd, {}, golden_values)
-            elif variant == "approx_mult":
-                res = evaluate_errors(vectors, approxMultDotProd, {
-                    "multPrec": FORMAT_MAP.get(scheme.get("multPrec"), bfloat16format),
-                    "resPrec": FORMAT_MAP.get(scheme.get("resPrec"), singleformat),
-                }, golden_values)
-            elif variant == "approx_mult_acc":
-                res = evaluate_errors(vectors, approxMultBinTreeAccDotProd, {
-                    "multPrec": FORMAT_MAP.get(scheme.get("multPrec"), bfloat16format),
-                    "addPrec": FORMAT_MAP.get(scheme.get("addPrec"), bfloat16format),
-                    "resPrec": FORMAT_MAP.get(scheme.get("resPrec"), singleformat),
-                }, golden_values)
-            elif variant == "fma":
-                res = evaluate_errors(vectors, fmaDotProd, {
-                    "prec": FORMAT_MAP.get(scheme.get("fmaPrec"), singleformat),
-                    "resPrec": FORMAT_MAP.get(scheme.get("resPrec"), singleformat),
-                }, golden_values)
-            elif variant == "bulk_norm":
-                res = evaluate_errors(vectors, bulkNormDotProd, {
-                    "bulkNormPrec": scheme.get("bulkNormPrec"),
-                    "finalPrec": scheme.get("finalPrec"),
-                }, golden_values)
+            states[name] = evaluate_errors_vector(vectors, res_vector, golden_values, state=states[name])
                 
-            results_sum[name].append(res["sum_signed_error"])
-            results_avg[name].append(res["mean_signed_error"])
+            results_sum[name].append(states[name]["sum_signed_error"])
+            results_avg[name].append(states[name]["mean_signed_error"])
             
-            total_pos[name] += res["pos_count"]
-            total_neg[name] += res["neg_count"]
-            total_pos_a[name] += res["pos_a_count"]
-            total_neg_a[name] += res["neg_a_count"]
-            total_pos_b[name] += res["pos_b_count"]
-            total_neg_b[name] += res["neg_b_count"]
-            total_exact_pos[name] += res["exact_pos_count"]
-            total_exact_neg[name] += res["exact_neg_count"]
-            total_opposite_sign[name] += res["opposite_sign_count"]
+        last_n = n
 
     print("\nError Direction Summary (aggregated over all N):")
     print("-" * 148)
@@ -129,7 +131,8 @@ def main():
     print("-" * 148)
     for scheme in schemes:
         name = scheme.get("name")
-        print(f"{name:<40} | {total_pos[name]:<10} | {total_neg[name]:<10} | {total_pos_a[name]:<8} | {total_neg_a[name]:<8} | {total_pos_b[name]:<8} | {total_neg_b[name]:<8} | {total_exact_pos[name]:<9} | {total_exact_neg[name]:<9} | {total_opposite_sign[name]:<8}")
+        st = states[name]
+        print(f"{name:<40} | {st['pos_count']:<10} | {st['neg_count']:<10} | {st['pos_a_count']:<8} | {st['neg_a_count']:<8} | {st['pos_b_count']:<8} | {st['neg_b_count']:<8} | {st['exact_pos_count']:<9} | {st['exact_neg_count']:<9} | {st['opposite_sign_count']:<8}")
     print("-" * 148 + "\n")
 
     plt.figure(figsize=(15, 6))
