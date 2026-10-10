@@ -769,6 +769,17 @@ document.addEventListener("DOMContentLoaded", () => {
         const dataStatsBody = document.getElementById("data-stats-body");
         if (dataStatsBody) dataStatsBody.innerHTML = `<tr><td colspan="5" class="empty-state">Computing…</td></tr>`;
 
+        const chartPlaceholder = document.getElementById("chart-placeholder");
+        let chartPlaceholderP = null;
+        let originalPlaceholderHtml = "";
+        if (chartPlaceholder) {
+            chartPlaceholderP = chartPlaceholder.querySelector("p");
+            if (chartPlaceholderP) {
+                originalPlaceholderHtml = chartPlaceholderP.innerHTML;
+                chartPlaceholderP.innerHTML = "Computing ...";
+            }
+        }
+
         try {
             const resp = await fetch("/api/evaluate", {
                 method: "POST",
@@ -786,6 +797,9 @@ document.addEventListener("DOMContentLoaded", () => {
             statsBody.innerHTML = `<tr><td colspan="14" class="empty-state" style="color:var(--error)">Evaluation failed — ${err.message}</td></tr>`;
             if (dataStatsBody) dataStatsBody.innerHTML = `<tr><td colspan="5" class="empty-state" style="color:var(--error)">Evaluation failed — ${err.message}</td></tr>`;
         } finally {
+            if (chartPlaceholderP && originalPlaceholderHtml) {
+                chartPlaceholderP.innerHTML = originalPlaceholderHtml;
+            }
             evaluateBtn.disabled = false;
             btnLabel.style.display = "inline";
             btnSpinner.style.display = "none";

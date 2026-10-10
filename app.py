@@ -37,7 +37,8 @@ MAX_SCHEME_NUM = 10
 # 0.1.5: fixing number of guard bits for 64-element RVBNA variants
 # 0.1.6: Adding the capability to sort metric columns in the Error Statistics table
 # 0.1.7: Correcting plotting of exact value in CDF error plot.
-VERSION = "0.1.5"
+# 0.1.8: Changing temporary message replacing plot display while computation is running
+VERSION = "0.1.8"
 
 limiter = Limiter(
     get_remote_address,
