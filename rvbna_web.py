@@ -191,11 +191,14 @@ def evaluate_errors_vector(vectors, res_vector, golden_values, state=None):
     err_neg_res_neg = state["err_neg_res_neg"]
 
     for ((a, b), res, golden) in zip(vectors, res_vector, golden_values):
+        # counting the number of strictly positive (resp. strictly negative)
+        # results (from golden).
         if golden > 0:
             state["exact_pos_count"] += 1
         elif golden < 0:
             state["exact_neg_count"] += 1
-            
+
+        # counting number of positives a (resp. b) values.
         for ai in a:
             if ai > 0: state["pos_a_count"] += 1
             elif ai < 0: state["neg_a_count"] += 1
@@ -203,6 +206,8 @@ def evaluate_errors_vector(vectors, res_vector, golden_values, state=None):
             if bi > 0: state["pos_b_count"] += 1
             elif bi < 0: state["neg_b_count"] += 1
         
+        # counting how many time the implementation returns a result of
+        # oppositve sign vs golden.
         if (res > 0 and golden < 0) or (res < 0 and golden > 0):
             state["opposite_sign_count"] += 1
             
