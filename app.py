@@ -26,7 +26,7 @@ from flask_limiter.util import get_remote_address
 app = Flask(__name__, static_folder="static")
 
 # Maximum number of requests per minutes that the server serves
-MAX_REQUESTS_PER_MINUTE = 10
+MAX_REQUESTS_PER_MINUTE = 1000
 # Maximum number of schemes the user is allowed to request at once
 MAX_SCHEME_NUM = 10
 # Current version of the application advertised on the user interface
