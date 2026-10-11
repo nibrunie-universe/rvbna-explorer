@@ -67,7 +67,7 @@ EXPERIMENTS = {
         ]
     },
     "exp_4d": {
-        "appVersion": "0.0.9",
+        "appVersion": "0.1.9",
         "dataSource": "random",
         "n": 10000,
         "k": 4,
@@ -128,7 +128,7 @@ EXPERIMENTS = {
         ]
     },
     "exp_4d_zoom": {
-        "appVersion": "0.0.9",
+        "appVersion": "0.1.9",
         "dataSource": "random",
         "n": 10000,
         "k": 4,
@@ -175,7 +175,7 @@ EXPERIMENTS = {
         ]
     },
     "exp_64d": {
-        "appVersion": "0.0.9",
+        "appVersion": "0.1.9",
         "dataSource": "random",
         "n": 2500,
         "k": 64,
@@ -236,7 +236,7 @@ EXPERIMENTS = {
         ]
     },
     "exp_64d_a5b5": {
-        "appVersion": "0.0.9",
+        "appVersion": "0.1.9",
         "dataSource": "random",
         "n": 2500,
         "k": 64,
@@ -282,7 +282,7 @@ EXPERIMENTS = {
         ]
     },
     "exp_64d_a5b0": {
-        "appVersion": "0.0.9",
+        "appVersion": "0.1.9",
         "dataSource": "random",
         "n": 2500,
         "k": 64,
