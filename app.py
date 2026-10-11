@@ -38,7 +38,8 @@ MAX_SCHEME_NUM = 10
 # 0.1.6: Adding the capability to sort metric columns in the Error Statistics table
 # 0.1.7: Correcting plotting of exact value in CDF error plot.
 # 0.1.8: Changing temporary message replacing plot display while computation is running
-VERSION = "0.1.8"
+# 0.1.9: Adding exp_64d_a5b0 and renaming exp_64d_zoom -> exp_64d_a5b5 (Experiments aliases)
+VERSION = "0.1.9"
 
 limiter = Limiter(
     get_remote_address,
@@ -234,7 +235,7 @@ EXPERIMENTS = {
             }
         ]
     },
-    "exp_64d_zoom": {
+    "exp_64d_a5b5": {
         "appVersion": "0.0.9",
         "dataSource": "random",
         "n": 2500,
@@ -247,6 +248,52 @@ EXPERIMENTS = {
         "aSigma": 5,
         "bDistribution": "gaussian",
         "bAverage": 5,
+        "bSigma": 5,
+        "seed": 1306,
+        "schemes": [
+            {
+                "variant": "correctly_rounded",
+                "resPrec": "fp32",
+                "customName": "A. Correcty Rounded",
+                "name": "A. Correcty Rounded"
+            },
+            {
+                "variant": "fma",
+                "fmaPrec": "fp32",
+                "resPrec": "fp32",
+                "customName": "B. Sequence of FMAs",
+                "name": "B. Sequence of FMAs"
+            },
+            {
+                "variant": "approx_mult_acc",
+                "multPrec": "fp32",
+                "addPrec": "fp32",
+                "resPrec": "fp32",
+                "customName": "E. FP Mul + FP Add tree (large precision):",
+                "name": "E. FP Mul + FP Add tree (large precision):"
+            },
+            {
+                "variant": "bulk_norm",
+                "bulkNormPrec": "29",
+                "finalPrec": "23",
+                "customName": "F. Bulk Normalization",
+                "name": "F. Bulk Normalization"
+            }
+        ]
+    },
+    "exp_64d_a5b0": {
+        "appVersion": "0.0.9",
+        "dataSource": "random",
+        "n": 2500,
+        "k": 64,
+        "average": 5,
+        "sigma": 5,
+        "inputPrec": "bf16",
+        "aDistribution": "gaussian",
+        "aAverage": 5,
+        "aSigma": 5,
+        "bDistribution": "gaussian",
+        "bAverage": 0,
         "bSigma": 5,
         "seed": 1306,
         "schemes": [
