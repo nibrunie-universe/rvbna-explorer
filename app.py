@@ -333,6 +333,74 @@ EXPERIMENTS = {
 def index():
     return send_from_directory("static", "index.html")
 
+@app.route("/api/experiments")
+def get_experiments():
+    metadata = {
+        "demo": {
+            "title": "Demo (128D)",
+            "summary": "K=128, N=1,000 · BF16 · Gaussian (μ=0, σ=5)",
+            "tag": "128D",
+        },
+        "exp_4d": {
+            "title": "4D Baseline",
+            "summary": "K=4, N=10,000 · BF16 · Gaussian (μ=0, σ=5)",
+            "tag": "4D",
+        },
+        "exp_4d_zoom": {
+            "title": "4D Tail Zoom",
+            "summary": "K=4, N=10,000 · Samples [9,700–10,000] · BF16",
+            "tag": "4D Zoom",
+        },
+        "exp_64d": {
+            "title": "64D Baseline",
+            "summary": "K=64, N=2,500 · BF16 · Gaussian (μA=μB=0, σ=5)",
+            "tag": "64D",
+        },
+        "exp_64d_a5b5": {
+            "title": "64D Dual Biased Input Distributions",
+            "summary": "K=64, N=2,500 · BF16 · Non-zero mean (μA=μB=5, σA=σB=5)",
+            "tag": "64D μ=5",
+        },
+        "exp_64d_a5b0": {
+            "title": "64D Single Biased Input Distribution",
+            "summary": "K=64, N=2,500 · BF16 · Non-zero mean (μA=5, μB=0, σA=σB=5)",
+            "tag": "64D μA=5",
+        },
+    }
+
+    results = []
+    for handle, exp in EXPERIMENTS.items():
+        meta = metadata.get(handle, {})
+        title = meta.get("title", handle)
+        tag = meta.get("tag", f"K={exp.get('k', '?')}")
+        summary = meta.get("summary")
+        if not summary:
+            k = exp.get("k", "?")
+            n = exp.get("n", "?")
+            prec = exp.get("inputPrec", "bf16").upper()
+            a_avg = exp.get("aAverage", exp.get("average", 0))
+            b_avg = exp.get("bAverage", exp.get("average", 0))
+            sigma = exp.get("aSigma", exp.get("sigma", 5))
+            start = exp.get("start")
+            n_str = f"{n:,}" if isinstance(n, int) else f"{n}"
+            parts = [f"K={k}", f"N={n_str}"]
+            if start:
+                parts.append(f"zoom [{start}..{n}]")
+            if a_avg == b_avg:
+                parts.append(f"μ={a_avg}")
+            else:
+                parts.append(f"μA={a_avg}, μB={b_avg}")
+            parts.append(f"σ={sigma}")
+            parts.append(prec)
+            summary = " · ".join(parts)
+        results.append({
+            "handle": handle,
+            "title": title,
+            "tag": tag,
+            "summary": summary,
+        })
+    return jsonify(results)
+
 @app.route("/api/experiment/<handle>")
 def get_experiment(handle):
     print(f"Trying to localte handle {handle}")

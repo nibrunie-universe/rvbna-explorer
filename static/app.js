@@ -548,6 +548,147 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // ═══════════════════════════════════════════════════════════════
+    //  Preconfigured Experiments
+    // ═══════════════════════════════════════════════════════════════
+
+    const DEFAULT_EXPERIMENTS = [
+        { handle: "demo", title: "Demo (128D)", tag: "128D", summary: "K=128, N=1,000 · BF16 · Gaussian (μ=0, σ=5)" },
+        { handle: "exp_4d", title: "4D Baseline", tag: "4D", summary: "K=4, N=10,000 · BF16 · Gaussian (μ=0, σ=5)" },
+        { handle: "exp_4d_zoom", title: "4D Tail Zoom", tag: "4D Zoom", summary: "K=4, N=10,000 · Samples [9,700–10,000] · BF16" },
+        { handle: "exp_64d", title: "64D Baseline", tag: "64D", summary: "K=64, N=2,500 · BF16 · Gaussian (μ=0, σ=5)" },
+        { handle: "exp_64d_a5b5", title: "64D Symmetric Bias", tag: "64D μ=5", summary: "K=64, N=2,500 · BF16 · Non-zero mean (μA=5, μB=5)" },
+        { handle: "exp_64d_a5b0", title: "64D Asymmetric Bias", tag: "64D μA=5", summary: "K=64, N=2,500 · BF16 · Asymmetric mean (μA=5, μB=0)" },
+    ];
+
+    function renderExperimentsList(experiments) {
+        const listEl = document.getElementById("experiments-list");
+        if (!listEl) return;
+        listEl.innerHTML = "";
+
+        const currentHash = window.location.hash;
+        const currentExpHandle = currentHash.startsWith("#exp=") ? currentHash.substring(5) : null;
+
+        experiments.forEach(exp => {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "experiment-item" + (currentExpHandle === exp.handle ? " active" : "");
+            btn.dataset.handle = exp.handle;
+            btn.title = `Click to load and evaluate ${exp.title}`;
+
+            btn.innerHTML = `
+                <div class="experiment-item-header">
+                    <span class="experiment-item-title">${exp.title}</span>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span class="experiment-item-tag">${exp.tag || ("K=" + (exp.k || "?"))}</span>
+                        <span class="experiment-item-action">
+                            <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor">
+                                <path d="M4.5 3.5l7 4.5-7 4.5v-9z"/>
+                            </svg>
+                        </span>
+                    </div>
+                </div>
+                <div class="experiment-item-summary">${exp.summary}</div>
+            `;
+
+            btn.addEventListener("click", () => {
+                runExperiment(exp.handle);
+            });
+
+            listEl.appendChild(btn);
+        });
+    }
+
+    function loadState(state) {
+        if (!state) return;
+        console.log("Applying experiment state:", state);
+        if (state.appVersion) {
+            loadedStateVersion = state.appVersion;
+        }
+
+        if (state.n) document.getElementById("cfg-n").value = state.n;
+        if (state.k) document.getElementById("cfg-k").value = state.k;
+        if (state.inputPrec) document.getElementById("cfg-input-prec").value = state.inputPrec;
+
+        const seedInput = document.getElementById("cfg-seed");
+        if (seedInput) seedInput.value = (state.seed !== undefined && state.seed !== null) ? state.seed : "";
+
+        const startInput = document.getElementById("cfg-plot-start");
+        if (startInput) startInput.value = (state.start !== undefined && state.start !== null) ? state.start : "";
+
+        const endInput = document.getElementById("cfg-plot-end");
+        if (endInput) endInput.value = (state.end !== undefined && state.end !== null) ? state.end : "";
+
+        // Restore per-vector distribution params
+        if (state.aDistribution) {
+            document.getElementById("cfg-a-dist").value = state.aDistribution;
+            updateDistLabels("a", state.aDistribution);
+        }
+        if (state.aAverage != null) document.getElementById("cfg-a-avg").value = state.aAverage;
+        if (state.aSigma != null) document.getElementById("cfg-a-sigma").value = state.aSigma;
+        if (state.bDistribution) {
+            document.getElementById("cfg-b-dist").value = state.bDistribution;
+            updateDistLabels("b", state.bDistribution);
+        }
+        if (state.bAverage != null) document.getElementById("cfg-b-avg").value = state.bAverage;
+        if (state.bSigma != null) document.getElementById("cfg-b-sigma").value = state.bSigma;
+
+        // Backward compat: restore old shared average/sigma into both vectors
+        if (state.average != null && state.aAverage == null) {
+            document.getElementById("cfg-a-avg").value = state.average;
+            document.getElementById("cfg-b-avg").value = state.average;
+        }
+        if (state.sigma != null && state.aSigma == null) {
+            document.getElementById("cfg-a-sigma").value = state.sigma;
+            document.getElementById("cfg-b-sigma").value = state.sigma;
+        }
+
+        // Clear container and restore schemes
+        if (state.schemes && Array.isArray(state.schemes)) {
+            schemesContainer.innerHTML = "";
+            state.schemes.forEach(s => {
+                addSchemeCard(s.variant, s, true);
+            });
+        }
+    }
+
+    async function runExperiment(handle) {
+        try {
+            // Update UI active state
+            document.querySelectorAll(".experiment-item").forEach(item => {
+                item.classList.toggle("active", item.dataset.handle === handle);
+            });
+
+            // Update URL hash
+            history.replaceState(null, "", `#exp=${handle}`);
+
+            setStatus("loading", `Loading ${handle}…`);
+            const resp = await fetch(`/api/experiment/${handle}`);
+            if (!resp.ok) throw new Error(`Server returned ${resp.status}`);
+            const state = await resp.json();
+
+            // Load parameters into form and schemes
+            loadState(state);
+
+            // Automatically evaluate
+            setTimeout(() => {
+                evaluateBtn.click();
+            }, 50);
+        } catch (err) {
+            console.error("Failed to run experiment", err);
+            setStatus("error", "Failed to load experiment");
+        }
+    }
+
+    // Reset preset highlight when user modifies form
+    form.addEventListener("input", (e) => {
+        if (e.target && !e.target.closest("#experiments-card")) {
+            document.querySelectorAll(".experiment-item.active").forEach(item => {
+                item.classList.remove("active");
+            });
+        }
+    });
+
     async function restoreStateFromHash() {
         const hash = window.location.hash;
         if (!hash) return false;
@@ -563,67 +704,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 const resp = await fetch(`/api/experiment/${handle}`);
                 if (!resp.ok) throw new Error(`Server returned ${resp.status}`);
                 state = await resp.json();
+                document.querySelectorAll(".experiment-item").forEach(item => {
+                    item.classList.toggle("active", item.dataset.handle === handle);
+                });
             } else {
                 return false;
             }
 
-            // adding console logging of state
             console.log("Restoring state from hash:", state);
-            if (state.appVersion) {
-                loadedStateVersion = state.appVersion;
-            }
-
-            // Restore form fields
-            //if (state.dataSource) {
-            //    document.getElementById("cfg-data-source").value = state.dataSource;
-            //    document.getElementById("cfg-data-source").dispatchEvent(new Event("change"));
-            //}
-            if (state.n) document.getElementById("cfg-n").value = state.n;
-            if (state.k) document.getElementById("cfg-k").value = state.k;
-            if (state.inputPrec) document.getElementById("cfg-input-prec").value = state.inputPrec;
-            if (state.seed !== undefined && state.seed !== null) {
-                const seedInput = document.getElementById("cfg-seed");
-                if (seedInput) seedInput.value = state.seed;
-            }
-            if (state.start !== undefined && state.start !== null) {
-                const startInput = document.getElementById("cfg-plot-start");
-                if (startInput) startInput.value = state.start;
-            }
-            if (state.end !== undefined && state.end !== null) {
-                const endInput = document.getElementById("cfg-plot-end");
-                if (endInput) endInput.value = state.end;
-            }
-
-            // Restore per-vector distribution params
-            if (state.aDistribution) {
-                document.getElementById("cfg-a-dist").value = state.aDistribution;
-                updateDistLabels("a", state.aDistribution);
-            }
-            if (state.aAverage != null) document.getElementById("cfg-a-avg").value = state.aAverage;
-            if (state.aSigma != null) document.getElementById("cfg-a-sigma").value = state.aSigma;
-            if (state.bDistribution) {
-                document.getElementById("cfg-b-dist").value = state.bDistribution;
-                updateDistLabels("b", state.bDistribution);
-            }
-            if (state.bAverage != null) document.getElementById("cfg-b-avg").value = state.bAverage;
-            if (state.bSigma != null) document.getElementById("cfg-b-sigma").value = state.bSigma;
-
-            // Backward compat: restore old shared average/sigma into both vectors
-            if (state.average != null && state.aAverage == null) {
-                document.getElementById("cfg-a-avg").value = state.average;
-                document.getElementById("cfg-b-avg").value = state.average;
-            }
-            if (state.sigma != null && state.aSigma == null) {
-                document.getElementById("cfg-a-sigma").value = state.sigma;
-                document.getElementById("cfg-b-sigma").value = state.sigma;
-            }
-
-            // Clear container and restore schemes
-            schemesContainer.innerHTML = "";
-            state.schemes.forEach(s => {
-                addSchemeCard(s.variant, s, true);
-            });
-            
+            loadState(state);
             return true;
         } catch (err) {
             console.error("Failed to restore state", err);
@@ -631,7 +720,17 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // ── Create default scheme cards on page load ─────────────────
+    // ── Render experiments card & restore state or defaults on load ─
+    renderExperimentsList(DEFAULT_EXPERIMENTS);
+    fetch("/api/experiments")
+        .then(res => res.json())
+        .then(data => {
+            if (Array.isArray(data) && data.length > 0) {
+                renderExperimentsList(data);
+            }
+        })
+        .catch(err => console.warn("Could not fetch /api/experiments, using defaults", err));
+
     restoreStateFromHash().then(restored => {
         if (restored) {
             // Automatically evaluate if state was restored from URL
