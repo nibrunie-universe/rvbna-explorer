@@ -3,7 +3,6 @@
 from pysollya import SollyaObject, round_sol, floor_sol, log2, RN, halfprecisionformat, singleformat, doubleformat, bfloat16format
 import random
 import math
-import statistics
 import numpy as np
 
 # Named format lookup for the web API
